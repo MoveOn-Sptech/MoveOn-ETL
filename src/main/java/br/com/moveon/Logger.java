@@ -30,9 +30,11 @@ public class Logger {
     String ANSI_YELLOW = "\u001B[33m";
 
     private LogDao logDao;
+    private DatabaseConnection databaseConnection ;
 
     public Logger() {
         DatabaseConnection connection = new DatabaseConnection();
+        this.databaseConnection = connection;
         this.logDao = new LogDao(connection.getJdbcTemplate());
     }
 
@@ -82,5 +84,9 @@ public class Logger {
 
     public LogDao getLogDao() {
         return logDao;
+    }
+
+    public DatabaseConnection getDatabaseConnection() {
+        return databaseConnection;
     }
 }

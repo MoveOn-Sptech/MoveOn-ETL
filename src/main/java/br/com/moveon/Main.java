@@ -1,5 +1,6 @@
 package br.com.moveon;
 
+import br.com.moveon.connection.DatabaseConnection;
 import br.com.moveon.daos.MusicaDao;
 import br.com.moveon.entites.Log;
 import br.com.moveon.entites.Musica;
@@ -11,16 +12,16 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        Logger logger = new Logger();
+        DatabaseConnection connection = new DatabaseConnection();
+
+        Logger logger = new Logger(connection.getJdbcTemplate());
         Workbook workbook = new XSSFWorkbook("./musicas.xlsx");
         Sheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIterator = sheet.rowIterator();
@@ -28,7 +29,7 @@ public class Main {
         logger.info("Iniciando processo de ETL da artesp");
         // hasNext => existe um proximo
         // next => item em si
-        MusicaDao musicaDao = new MusicaDao(logger.getDatabaseConnection().getJdbcTemplate());
+        MusicaDao musicaDao = new MusicaDao(connection.getJdbcTemplate());
         logger.info("Deletando base de dados");
         musicaDao.deleteAll();
 
@@ -40,9 +41,8 @@ public class Main {
             LocalDate localDate = row.getCell(10).getLocalDateTimeCellValue().toLocalDate();
 
 
-            Musica musica = new Musica(id, titulo, localDate);
+            Musica musica = new Musica(id, titulo.toUpperCase(), localDate);
             musicaDao.save(musica);
-
         }
 
         logger.info("Processo de extração e tranformação feito com sucesso");

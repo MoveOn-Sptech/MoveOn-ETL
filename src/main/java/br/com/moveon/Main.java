@@ -4,7 +4,6 @@ import br.com.moveon.connection.DatabaseConnection;
 import br.com.moveon.daos.MusicaDao;
 import br.com.moveon.entites.Log;
 import br.com.moveon.entites.Musica;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -48,7 +47,7 @@ public class Main {
         logger.info("Processo de extração e tranformação feito com sucesso");
 
 
-//        CRIAÇÂO DE PLANILHA
+        //        CRIAÇÂO DE PLANILHA
         Workbook workbookTransformado = new XSSFWorkbook();
         Sheet sheetTranformado = workbookTransformado.createSheet();
 

@@ -32,6 +32,7 @@ public class Logger {
     private LogDao logDao;
 
     public Logger(JdbcTemplate jdbcTemplate) {
+        this.init();
         this.logDao = new LogDao(jdbcTemplate);
     }
 
@@ -52,11 +53,7 @@ public class Logger {
         );
         this.logDao.save(log);
 
-        typeLog = ANSI_COLOR.concat(typeLog.concat(ANSI_RESET));
-
-        String templateLog = "%s %s --- [moveon] : %s";
-
-        return templateLog.formatted(createdAtFormated, typeLog, description);
+       return log.toString();
     }
 
     void info(String description) {

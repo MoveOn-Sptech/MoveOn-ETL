@@ -35,13 +35,18 @@ public class RodoviaDao {
     
     public Rodovia select(Rodovia rodovia) {
        List<Rodovia> rodovias = this.jdbcTemplate.query("""
-                                       SELECT * FROM Rodovia where nomeRodovia = ? AND denominacaoRodovia = ? AND
-                                       nomeConcessionaria = ? AND municipioRodovia = ? AND
-                                       regionalDer = ? AND regAdmMunicipio = ?
-                       """, rodovia.getIdRodovia(), rodovia.getNomeRodovia(),
-                rodovia.getDenominacaoRodovia(), rodovia.getNomeConcessionaria(), rodovia.getMunicipioRodovia(),
-                rodovia.getRegionalDer(), rodovia.getMunicipioRodovia(), new BeanPropertyRowMapper<>(Rodovia.class));
-    if (rodovias.isEmpty()) {
+                        SELECT * FROM Rodovia where nomeRodovia = ? AND denominacaoRodovia = ? AND
+                        nomeConcessionaria = ? AND municipioRodovia = ? AND
+                        regionalDer = ? AND regAdmMunicipio = ?
+                       """,new BeanPropertyRowMapper<>(Rodovia.class),
+                            rodovia.getNomeRodovia(),
+                            rodovia.getDenominacaoRodovia(),
+                            rodovia.getNomeConcessionaria(),
+                            rodovia.getMunicipioRodovia(),
+                            rodovia.getRegionalDer(),
+                            rodovia.getMunicipioRodovia());
+
+       if (rodovias.isEmpty()) {
         return null;
     }
     

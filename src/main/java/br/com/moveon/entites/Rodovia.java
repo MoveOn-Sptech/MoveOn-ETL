@@ -14,8 +14,8 @@ public class Rodovia {
     public Rodovia() {
     }
 
-    public Rodovia(Integer idRodovia, String nomeRodovia, String denominacaoRodovia, String nomeConcessionaria, String municipioRodovia, String regionalDer, String regAdmMunicipio) {
-        this.idRodovia = idRodovia;
+    public Rodovia(String nomeRodovia, String denominacaoRodovia, String nomeConcessionaria, String municipioRodovia, String regionalDer, String regAdmMunicipio) {
+        this.idRodovia = null;
         this.nomeRodovia = nomeRodovia;
         this.denominacaoRodovia = denominacaoRodovia;
         this.nomeConcessionaria = nomeConcessionaria;

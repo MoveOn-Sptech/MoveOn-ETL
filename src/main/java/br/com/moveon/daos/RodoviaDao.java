@@ -21,16 +21,15 @@ public class RodoviaDao {
                 (idRodovia,nomeRodovia, denominacaoRodovia, 
                 nomeConcessionaria, municipioRodovia, 
                 regionalDer, regAdmMunicipio) VALUES (default, ?, ?, ?, ?, ?, ?)
-                """, rodovia.getIdRodovia(), rodovia.getNomeRodovia(),
-                rodovia.getDenominacaoRodovia(), rodovia.getNomeConcessionaria(), rodovia.getMunicipioRodovia(),
+                """, rodovia.getNomeRodovia(),rodovia.getDenominacaoRodovia(),
+                rodovia.getNomeConcessionaria(), rodovia.getMunicipioRodovia(),
                 rodovia.getRegionalDer(), rodovia.getMunicipioRodovia());
 
     }
 
     public void truncate() {
-        this.jdbcTemplate.update("""
-                TRUNCATE TABLE Rodovia
-                """);
+        this.jdbcTemplate.update("DELETE FROM Acidente");
+        this.jdbcTemplate.update("DELETE FROM Rodovia");
     }
     
     public Rodovia select(Rodovia rodovia) {

@@ -25,27 +25,46 @@ public class Main {
 
         logger.info("Iniciando processo de ETL da artesp");
 
-       rowIterator.next();
+        rowIterator.next();
+        rodoviaDao.truncate();
 
-        while (rowIterator.hasNext()){
+        Integer rodoviasValidas = 0;
+        Integer rodoviasNaoValidas = 0;
+        while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
-            Rodovia rodovia = new Rodovia(
-                    row.getCell(2).toString(),
-                    row.getCell(20).toString(),
-                    row.getCell(1).toString(),
-                    row.getCell(21).toString(),
-                    row.getCell(22).toString(),
-                    row.getCell(23).toString()
 
-            );
+            if (
+                    row.getCell(2) != null &&
+                    row.getCell(20) != null &&
+                    row.getCell(1) != null &&
+                    row.getCell(21) != null &&
+                    row.getCell(22) != null &&
+                    row.getCell(23) != null
+            ) {
 
-            Rodovia rodoviaEncontrada = rodoviaDao.select(rodovia);
+                Rodovia rodovia = new Rodovia(
+                        row.getCell(2).toString(),
+                        row.getCell(20).toString(),
+                        row.getCell(1).toString(),
+                        row.getCell(21).toString(),
+                        row.getCell(22).toString(),
+                        row.getCell(23).toString()
+                );
 
-            if (rodoviaEncontrada == null) {
-                rodoviaDao.save(rodovia);
+                Rodovia rodoviaEncontrada = rodoviaDao.select(rodovia);
+
+                if (rodoviaEncontrada == null) {
+                    rodoviaDao.save(rodovia);
+                    rodoviasValidas++;
+                }
+            }else {
+                rodoviasNaoValidas++;
             }
 
         }
+
+            logger.info("Rodovias cadastradas com sucesso ao todo foram "+ rodoviasValidas+" cadastradas e "+ rodoviasNaoValidas+" não cadastradas");
+
 
     }
 

@@ -1,77 +1,113 @@
 package br.com.moveon;
 
 import br.com.moveon.connection.DatabaseConnection;
-import br.com.moveon.daos.MusicaDao;
-import br.com.moveon.entites.Musica;
+import br.com.moveon.daos.RodoviaDao;
+import br.com.moveon.entites.Rodovia;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
-
 public class Mainexemplo {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws IOException {
+
         DatabaseConnection connection = new DatabaseConnection();
+        RodoviaDao rodoviaDao = new RodoviaDao(connection.getJdbcTemplate());
 
         Logger logger = new Logger(connection.getJdbcTemplate());
         Workbook workbook = new XSSFWorkbook("./2024.xlsx");
         Sheet sheet = workbook.getSheetAt(0);
-        Iterator<Row> rowIterator = sheet.rowIterator();
+        Iterator<Row> rowIteratorRodovia = sheet.rowIterator();
 
         logger.info("Iniciando processo de ETL da artesp");
-        // hasNext => existe um proximo
-        // next => item em si
-        MusicaDao musicaDao = new MusicaDao(connection.getJdbcTemplate());
-        logger.info("Deletando base de dados");
-        musicaDao.deleteAll();
 
-        rowIterator.next();
-        while (rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            Double id = Double.valueOf(row.getCell(0).toString());
-            String titulo = row.getCell(1).toString();
-            LocalDate localDate = row.getCell(10).getLocalDateTimeCellValue().toLocalDate();
+        rowIteratorRodovia.next();
+        rodoviaDao.truncate();
 
+        Integer rodoviasValidas = 0;
+        Integer rodoviasNaoValidas = 0;
+        Integer idUnico = 1;
+        List<Rodovia> rodovias = new ArrayList<>();
 
-            Musica musica = new Musica(id, titulo.toUpperCase(), localDate);
-            musicaDao.save(musica);
+        while (rowIteratorRodovia.hasNext()) {
+            Row row = rowIteratorRodovia.next();
+
+            // unicos 2 dados que não são nulos
+
+            if(
+                    row.getCell(2) != null && row.getCell(1)!= null
+            ){
+                Rodovia rodovia = obterRodovia(row);
+                Rodovia rodoviaEncontrada = rodoviaDao.select(rodovia);
+
+                if (rodoviaEncontrada == null) {
+                    rodovia.setIdRodovia(idUnico);
+//                    rodoviaDao.save(rodovia);
+                    rodovias.add(rodovia);
+                    rodoviasValidas++;
+
+                    idUnico++;
+                }
+            }else {
+                rodoviasNaoValidas++;
+            }
         }
+        rodoviaDao.saveAll(rodovias);
+        System.out.println(rodovias.size());
+        logger.info("Rodovias cadastradas com sucesso ao todo foram " + rodoviasValidas + " cadastradas e " + rodoviasNaoValidas + " não cadastradas");
 
-        logger.info("Processo de extração e tranformação feito com sucesso");
+        logger.info("Inciando processo de cadastro de acidentes ");
 
+//
+//        AcidenteDao acidenteDao = new AcidenteDao(connection.getJdbcTemplate());
+//
+//        Iterator<Row> rowIteratorAcidente = sheet.rowIterator();
+//        Integer quantidade = 0;
+//        while (rowIteratorAcidente.hasNext()){
+//            Row row = rowIteratorAcidente.next();!= null
+//            Rodovia rodovia = obterRodovia(row);
+//
+//
+//            for (Rodovia rodoviaAtual : rodovias) {
+//                if(
+//                        rodoviaAtual.getNomeRodovia().equals(rodovia.getNomeRodovia()) &&
+//                        rodoviaAtual.getDenominacaoRodovia().equals(rodovia.getDenominacaoRodovia()) &&
+//                        rodoviaAtual.getNomeConcessionaria().equals(rodovia.getNomeConcessionaria()) &&
+//                        rodoviaAtual.getMunicipioRodovia().equals(rodovia.getMunicipioRodovia()) &&
+//                        rodoviaAtual.getRegionalDer().equals(rodovia.getRegionalDer()) &&
+//                        rodoviaAtual.getRegAdmMunicipio().equals(rodovia.getRegAdmMunicipio())
+//                ){
+//                    rodovia.setIdRodovia(rodoviaAtual.getIdRodovia());
+//                    quantidade++;
+//
+//                    break;
+//                }
+//            }
+//
+//            System.out.println(rodovia);
+//            System.out.println(rodovia.getIdRodovia());
+//        }
+//
+//        System.out.println(quantidade);
 
-        //        CRIAÇÂO DE PLANILHA
-        Workbook workbookTransformado = new XSSFWorkbook();
-        Sheet sheetTranformado = workbookTransformado.createSheet();
-
-        List<Musica> musicas = musicaDao.getAll();
-
-        for (int i = 0; i < musicas.size(); i++) {
-            Musica musica = musicas.get(i);
-            Row row = sheetTranformado.createRow(i);
-
-            row.createCell(0).setCellValue(musica.getId());
-            row.createCell(1).setCellValue(musica.getTitulo());
-            row.createCell(2).setCellValue(musica.getDataLancamento().toString());
-        }
-
-        FileOutputStream outputStream = new FileOutputStream("./data2.xlsx");
-        workbookTransformado.write(outputStream);
-
-        logger.info("Finalização do processo etl");
 
     }
 
+    static Rodovia obterRodovia (Row row){
+        return new Rodovia(
+                row.getCell(2).toString(), // nomeRodovia
+                row.getCell(20) != null ? row.getCell(20).toString() : "", //denominacaoRodovia
+                row.getCell(1).toString(), //nomeConcessionaria
+                row.getCell(21) != null ? row.getCell(21).toString() : "", //municipioRodovia
+                row.getCell(22) != null ? row.getCell(22).toString() : "", //regionalDer
+                row.getCell(22) != null ? row.getCell(23).toString() : "" //regAdmMunicipio
+        );
+    }
+
 }
-
-
-
-

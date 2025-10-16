@@ -34,9 +34,9 @@ CREATE TABLE Acidente (
     vitGrave INT,
     vitLeve INT,
     tipoPista VARCHAR(45),
-    Rodovia_idRodovia INT NOT NULL, -- Chave estrangeira para Rodovia
+    fkRodovia INT NOT NULL, -- Chave estrangeira para Rodovia
     PRIMARY KEY (idAcidente),
-    FOREIGN KEY (Rodovia_idRodovia) REFERENCES Rodovia(idRodovia)
+    FOREIGN KEY (fkRodovia) REFERENCES Rodovia(idRodovia)
 );
 
 select * from logs;

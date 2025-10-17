@@ -50,20 +50,24 @@ public class Main {
                 Rodovia rodoviaEncontrada = rodoviaDao.select(rodovia);
 
                 if (rodoviaEncontrada == null) {
-                    rodovia.setIdRodovia(idRodovia);
-                    rodoviaDao.save(rodovia);
-                    rodovias.add(rodovia);
-                    idRodovia++;
+                    try {
+                        rodovia.setIdRodovia(idRodovia);
+                        rodoviaDao.save(rodovia);
+                        rodovias.add(rodovia);
+                        idRodovia++;
+                    } catch (Exception e) {
+                        logger.error("Erro ao salvar rodovia da linha: " + row.getRowNum());
+                    }
                 }
             } else {
                 rodoviasNaoValidas++;
             }
 
         }
-        System.out.println(rodovias);
+
         logger.info("Rodovias cadastradas com sucesso ao todo foram " + idRodovia + " cadastradas e " + rodoviasNaoValidas + " não cadastradas");
 
-
+        logger.info("Iniciando processo de cadastro de acidentes");
         AcidenteDao acidenteDao = new AcidenteDao(connection.getJdbcTemplate());
 
         Iterator<Row> rowIteratorAcidente = sheet.rowIterator();
@@ -103,28 +107,13 @@ public class Main {
                     row.getCell(16) != null &&
                     row.getCell(19) != null
             ) {
-                String dataString = row.getCell(5).toString();
-                System.out.println(dataString);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                LocalDateTime dataFormatada = LocalDateTime.parse(dataString, formatter);
-                System.out.println(dataFormatada);
-                Acidente acidente = new Acidente(
-                        (int) row.getCell(0).getNumericCellValue(),
-                        row.getCell(3).getNumericCellValue(),
-                        dataFormatada,
-                        row.getCell(7).toString(),
-                        row.getCell(6).toString(),
-                        row.getCell(8).toString(),
-                        row.getCell(10).toString(),
-                        (int) row.getCell(14).getNumericCellValue(),
-                        (int) row.getCell(15).getNumericCellValue(),
-                        (int) row.getCell(16).getNumericCellValue(),
-                        row.getCell(19).toString(),
-                        rodovia.getIdRodovia()
 
-                );
-
-                acidenteDao.save(acidente);
+                Acidente acidente = obterAcidente(row, rodovia);
+                try {
+                    acidenteDao.save(acidente);
+                } catch (Exception e) {
+                    logger.error("Erro em salvar acidente da linha: " + row.getRowNum());
+                }
             }
 
         }
@@ -140,6 +129,28 @@ public class Main {
                 row.getCell(21) != null ? row.getCell(21).toString() : "", //municipioRodovia
                 row.getCell(22) != null ? row.getCell(22).toString() : "", //regionalDer
                 row.getCell(22) != null ? row.getCell(23).toString() : "" //regAdmMunicipio
+        );
+    }
+
+    static Acidente obterAcidente(Row row, Rodovia rodovia) {
+        String dataString = row.getCell(5).toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime dataFormatada = LocalDateTime.parse(dataString, formatter);
+
+        return new Acidente(
+                (int) row.getCell(0).getNumericCellValue(),
+                row.getCell(3).getNumericCellValue(),
+                dataFormatada,
+                row.getCell(7).toString(),
+                row.getCell(6).toString(),
+                row.getCell(8).toString(),
+                row.getCell(10).toString(),
+                (int) row.getCell(14).getNumericCellValue(),
+                (int) row.getCell(15).getNumericCellValue(),
+                (int) row.getCell(16).getNumericCellValue(),
+                row.getCell(19).toString(),
+                rodovia.getIdRodovia()
+
         );
     }
 }

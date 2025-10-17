@@ -9,16 +9,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -75,6 +71,7 @@ public class Main {
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
 
+//            PRIORIDADE NOME DA CONCESSONARIA E DA RODOVIA
             if (
                     row.getCell(2) != null &&
                     row.getCell(1) != null
@@ -94,7 +91,6 @@ public class Main {
             }
 
         }
-        System.out.println(rodovias);
         logger.info("Rodovias cadastradas com sucesso ao todo foram " + idRodovia + " cadastradas e " + rodoviasNaoValidas + " não cadastradas");
 
 
@@ -138,10 +134,8 @@ public class Main {
                     row.getCell(19) != null
             ) {
                 String dataString = row.getCell(5).toString();
-                System.out.println(dataString);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 LocalDateTime dataFormatada = LocalDateTime.parse(dataString, formatter);
-                System.out.println(dataFormatada);
                 Acidente acidente = new Acidente(
                         (int) row.getCell(0).getNumericCellValue(),
                         row.getCell(3).getNumericCellValue(),
@@ -163,7 +157,84 @@ public class Main {
 
         }
 
+        Workbook workbookDist = new XSSFWorkbook();
+        Sheet sheeRodoviatDist = workbookDist.createSheet("rodovias");
 
+        logger.info("Exportando base de dados");
+        Row rowHeader = sheeRodoviatDist.createRow(0);
+        rowHeader.createCell(0).setCellValue("ID");
+        rowHeader.createCell(1).setCellValue("RODOVIA");
+        rowHeader.createCell(2).setCellValue("DENOMINACAO");
+        rowHeader.createCell(3).setCellValue("NOME_CONC");
+        rowHeader.createCell(4).setCellValue("MUNICÍPIO");
+        rowHeader.createCell(5).setCellValue("REGIONAL_DER");
+        rowHeader.createCell(6).setCellValue("REG_ADM_SP");
+
+        for (int i = 1; i < rodovias.size() + 1; i++) {
+            Row row = sheeRodoviatDist.createRow(i);
+
+            Rodovia rodovia = rodovias.get(i - 1);
+            row.createCell(0).setCellValue(rodovia.getIdRodovia());
+            row.createCell(1).setCellValue(rodovia.getNomeRodovia());
+            row.createCell(2).setCellValue(rodovia.getDenominacaoRodovia());
+            row.createCell(3).setCellValue(rodovia.getNomeConcessionaria());
+            row.createCell(4).setCellValue(rodovia.getMunicipioRodovia());
+            row.createCell(5).setCellValue(rodovia.getRegionalDer());
+            row.createCell(6).setCellValue(rodovia.getRegAdmMunicipio());
+        }
+
+        Sheet sheetAcidentesDist = workbookDist.createSheet("acidentes");
+        Row rowAcidentesHeader = sheetAcidentesDist.createRow(0);
+        rowAcidentesHeader.createCell(0).setCellValue("ID");
+        rowAcidentesHeader.createCell(1).setCellValue("MARCO_QM");
+        rowAcidentesHeader.createCell(2).setCellValue("DTHR_OC");
+        rowAcidentesHeader.createCell(3).setCellValue("TIPO_ACID");
+        rowAcidentesHeader.createCell(4).setCellValue("CLASS_ACID");
+        rowAcidentesHeader.createCell(5).setCellValue("METEORO");
+        rowAcidentesHeader.createCell(6).setCellValue("VEIC");
+        rowAcidentesHeader.createCell(7).setCellValue("VIT_FATAL_INT");
+        rowAcidentesHeader.createCell(8).setCellValue("VIT_MODERADO_INT");
+        rowAcidentesHeader.createCell(9).setCellValue("VIT_LEVE_INT");
+        rowAcidentesHeader.createCell(10).setCellValue("TIPO_PIST");
+        rowAcidentesHeader.createCell(12).setCellValue("FK_RODOVIA");
+
+        List<Acidente> acidentes = acidenteDao.findAll();
+        for (int i = 1; i < acidentes.size() + 1; i++) {
+            Row row = sheetAcidentesDist.createRow(i);
+
+            Acidente acidente = acidentes.get(i - 1);
+            row.createCell(0).setCellValue(acidente.getIdAcidente());
+            row.createCell(1).setCellValue(acidente.getMarcoKm());
+            row.createCell(2).setCellValue(acidente.getDtHoraAcidente());
+            row.createCell(3).setCellValue(acidente.getTipoAcidente());
+            row.createCell(4).setCellValue(acidente.getCausaAcidente());
+            row.createCell(5).setCellValue(acidente.getClima());
+            row.createCell(6).setCellValue(acidente.getVeiculosEnvolvidos());
+            row.createCell(7).setCellValue(acidente.getVitFatal());
+            row.createCell(8).setCellValue(acidente.getVitGrave());
+            row.createCell(9).setCellValue(acidente.getVitLeve());
+            row.createCell(10).setCellValue(acidente.getTipoPista());
+            row.createCell(12).setCellValue(acidente.getFkRodovia());
+
+        }
+
+
+        logger.info("Exportação realizado com sucesso");
+
+        String filename = "dist-2024.xlsx";
+        FileOutputStream outputStream = new FileOutputStream(filename);
+        workbookDist.write(outputStream);
+
+
+        bucketName = "s3-moveon-prod-dist";
+//        UPLOAD ARQUIVO LOCAL
+        logger.info("Realizando upload de arquivo tratado");
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(bucketName).key(filename).build();
+        File file = new File(filename);
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
+
+        logger.info("Finalizando processo etl");
     }
 
     static Rodovia obterRodovia(Row row) {

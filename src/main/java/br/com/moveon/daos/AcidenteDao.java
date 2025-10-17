@@ -1,7 +1,10 @@
 package br.com.moveon.daos;
 
 import br.com.moveon.entites.Acidente;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.List;
 
 public class AcidenteDao {
 
@@ -45,4 +48,9 @@ public class AcidenteDao {
 
     }
 
+    public List<Acidente> findAll(){
+        List<Acidente> acidentes = this.jdbcTemplate.query("SELECT * FROM Acidente", new BeanPropertyRowMapper<>(Acidente.class));
+
+        return acidentes;
+    }
 }

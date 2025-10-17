@@ -45,7 +45,6 @@ public class RodoviaDao {
                 rodovia.getRegionalDer(), rodovia.getMunicipioRodovia()).concat(";");
 
 
-        System.out.println(query);
     }
 
 

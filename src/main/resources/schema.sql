@@ -19,17 +19,14 @@ CREATE TABLE Rodovia (
     regAdmMunicipio VARCHAR(45)
 );
 
-
--- Tabela Acidente
 CREATE TABLE Acidente (
     idAcidente INT NOT NULL,
     marcoKm DECIMAL(10, 2), -- Ajuste o tamanho e precisão conforme necessário
-    dataAcidente DATE,
-    horaAcidente DATETIME, -- Armazenando data e hora do acidente
+    dtHoraAcidente DATETIME,
     tipoAcidente VARCHAR(45),
     causaAcidente VARCHAR(45),
     clima VARCHAR(45),
-    veiculosEnvolvidos VARCHAR(45),
+    veiculosEnvolvidos VARCHAR(255),
     vitFatal INT,
     vitGrave INT,
     vitLeve INT,
@@ -38,22 +35,3 @@ CREATE TABLE Acidente (
     PRIMARY KEY (idAcidente),
     FOREIGN KEY (fkRodovia) REFERENCES Rodovia(idRodovia)
 );
-
-select * from logs;
-
-INSERT INTO logs (typeLog, description, createdAt)
-VALUES ('INFO', 'O serviço de processamento de pedidos foi inicializado.', NOW(6));
-
-INSERT INTO logs (typeLog, description, createdAt)
-VALUES ('WARN', 'A conexão com o cache externo atingiu o tempo limite.', NOW(6));
-
-INSERT INTO logs (typeLog, description, createdAt)
-VALUES ('ERROR', 'Exceção não tratada ao tentar calcular o frete.', NOW(6));
-
-SELECT
-    id,
-    typeLog,
-    description,
-    createdAt
-FROM logs
-ORDER BY id DESC;

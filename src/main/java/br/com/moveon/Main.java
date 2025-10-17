@@ -56,7 +56,7 @@ public class Main {
 
         }
 
-        Workbook workbook = new XSSFWorkbook("./2024_cem.xlsx");
+        Workbook workbook = new XSSFWorkbook("./2024.xlsx");
         Sheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIterator = sheet.rowIterator();
 

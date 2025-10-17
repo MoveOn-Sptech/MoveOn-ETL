@@ -9,8 +9,17 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,11 +34,36 @@ public class Main {
         RodoviaDao rodoviaDao = new RodoviaDao(connection.getJdbcTemplate());
 
         Logger logger = new Logger(connection.getJdbcTemplate());
-        Workbook workbook = new XSSFWorkbook("./2024.xlsx");
+
+        logger.info("Iniciando processo ETL:");
+
+        S3Client s3Client = new S3Provider().getS3Client();
+        String bucketName = "s3-moveon-prod-source";
+
+        logger.info("Estabelecendo conexão com a AWS BUCKET: " + bucketName);
+//        //                CRIANDO BUCKET
+//        CreateBucketRequest createBucketRequest = CreateBucketRequest.builder().bucket(bucketName).build();
+//        s3Client.createBucket(createBucketRequest);
+
+        logger.info("Baixando arquivos da base da dados: ");
+
+        //        BAIXANDO ARQUIVOS
+        ListObjectsRequest listObjectsRequest1 = ListObjectsRequest.builder().bucket(bucketName).build();
+        List<S3Object> s3Objects1 = s3Client.listObjects(listObjectsRequest1).contents();
+        for (S3Object s3Object : s3Objects1) {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(s3Object.key()).build();
+
+            InputStream stream = s3Client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
+            boolean fileExists = new File(s3Object.key()).exists();
+            if (!fileExists)
+                Files.copy(stream, new File(s3Object.key()).toPath());
+
+        }
+
+        Workbook workbook = new XSSFWorkbook("./2024_cem.xlsx");
         Sheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rowIterator = sheet.rowIterator();
 
-        logger.info("Iniciando processo de ETL da artesp");
 
         rowIterator.next();
         rodoviaDao.truncate();

@@ -12,7 +12,6 @@ public class AcidenteDao {
     }
 
     public void save(Acidente acidente) {
-        System.out.println(acidente);
         this.jdbcTemplate.update("""
                         INSERT INTO Acidente (
                             idAcidente,

@@ -1,0 +1,11 @@
+br\com\moveon\entites\Acidente.class
+br\com\moveon\entites\Rodovia.class
+br\com\moveon\entites\Log.class
+br\com\moveon\S3Provider.class
+br\com\moveon\daos\LogDao.class
+br\com\moveon\daos\RodoviaDao.class
+br\com\moveon\entites\Musica.class
+br\com\moveon\daos\AcidenteDao.class
+br\com\moveon\connection\DatabaseConnection.class
+br\com\moveon\Logger.class
+br\com\moveon\Main.class

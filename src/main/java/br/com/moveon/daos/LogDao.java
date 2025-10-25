@@ -1,6 +1,5 @@
 package br.com.moveon.daos;
 
-import br.com.moveon.Logger;
 import br.com.moveon.entites.Log;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,12 +18,12 @@ public class LogDao {
         if (log.getId() == null) {
             this.jdbcTemplate.update(
                     """
-                            INSERT INTO logs(typeLog, description, createdAt)
+                            INSERT INTO logs(tipo, descricao, dataCriacao)
                                 VALUES (?, ?, ?);
                             """,
-                    log.getTypeLog(),
-                    log.getDescription(),
-                    log.getCreatedAt()
+                    log.getTipo(),
+                    log.getDescricao(),
+                    log.getDataCriacao()
             );
             return;
         }
@@ -32,14 +31,14 @@ public class LogDao {
         this.jdbcTemplate.update(
                 """
                         UPDATE logs SET
-                            typeLog =?
-                            description = ?
-                            createdAt =?
+                            tipo =?
+                            descricao = ?
+                            dataCriacao =?
                         WHERE id = ?
                         """,
-                log.getTypeLog(),
-                log.getDescription(),
-                log.getCreatedAt(),
+                log.getTipo(),
+                log.getDescricao(),
+                log.getDataCriacao(),
                 log.getId()
         );
     }

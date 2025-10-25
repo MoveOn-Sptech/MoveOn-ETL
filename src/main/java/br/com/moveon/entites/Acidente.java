@@ -1,10 +1,13 @@
 package br.com.moveon.entites;
 
+import org.apache.poi.ss.usermodel.Row;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Acidente {
-    private  Integer idAcidente;
+    private Integer idAcidente;
     private Double marcoKm;
     private LocalDateTime dtHoraAcidente;
     private String tipoAcidente;
@@ -20,6 +23,24 @@ public class Acidente {
     public Acidente() {
     }
 
+    public Acidente(Row row, Rodovia rodovia) {
+        String dataString = row.getCell(5).toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime dataFormatada = LocalDateTime.parse(dataString, formatter);
+
+        this.idAcidente = (int) row.getCell(0).getNumericCellValue();
+        this.marcoKm = row.getCell(3).getNumericCellValue();
+        this.dtHoraAcidente = dataFormatada;
+        this.tipoAcidente = row.getCell(7).toString();
+        this.causaAcidente = row.getCell(6).toString();
+        this.clima = row.getCell(8).toString();
+        this.veiculosEnvolvidos = row.getCell(10).toString();
+        this.vitFatal = (int) row.getCell(14).getNumericCellValue();
+        this.vitGrave = (int) row.getCell(15).getNumericCellValue();
+        this.vitLeve = (int) row.getCell(16).getNumericCellValue();
+        this.tipoPista = row.getCell(19).toString();
+        this.fkRodovia = rodovia.getIdRodovia();
+    }
 
     public Acidente(Integer idAcidente, Double marcoKm, LocalDateTime dtHoraAcidente, String tipoAcidente, String causaAcidente, String clima, String veiculosEnvolvidos, Integer vitFatal, Integer vitGrave, Integer vitLeve, String tipoPista, Integer fkRodovia) {
         this.idAcidente = idAcidente;
@@ -35,6 +56,12 @@ public class Acidente {
         this.tipoPista = tipoPista;
         this.fkRodovia = fkRodovia;
     }
+
+    public Acidente(Row row) {
+
+    }
+
+
 
     public Integer getIdAcidente() {
         return idAcidente;

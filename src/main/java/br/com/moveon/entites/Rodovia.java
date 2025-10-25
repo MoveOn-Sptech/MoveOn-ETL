@@ -1,5 +1,9 @@
 package br.com.moveon.entites;
 
+import org.apache.poi.ss.usermodel.Row;
+
+import java.util.Objects;
+
 public class Rodovia {
 
     private Integer idRodovia;
@@ -10,8 +14,16 @@ public class Rodovia {
     private String regionalDer;
     private String regAdmMunicipio;
 
-
     public Rodovia() {
+    }
+
+    public Rodovia(Row row) {
+        this.nomeRodovia = row.getCell(2).toString(); // nomeRodovia
+        this.denominacaoRodovia = row.getCell(20) != null ? row.getCell(20).toString() : ""; //denominacaoRodovia
+        this.nomeConcessionaria = row.getCell(1).toString(); //nomeConcessionaria
+        this.municipioRodovia = row.getCell(21) != null ? row.getCell(21).toString() : ""; //municipioRodovia
+        this.regionalDer = row.getCell(22) != null ? row.getCell(22).toString() : "";//regionalDer
+        this.regAdmMunicipio = row.getCell(22) != null ? row.getCell(23).toString() : "";//regAdmMunicipio
     }
 
     public Rodovia(String nomeRodovia, String denominacaoRodovia, String nomeConcessionaria, String municipioRodovia, String regionalDer, String regAdmMunicipio) {
@@ -23,8 +35,6 @@ public class Rodovia {
         this.regionalDer = regionalDer;
         this.regAdmMunicipio = regAdmMunicipio;
     }
-
-
 
     public Integer getIdRodovia() {
         return idRodovia;
@@ -82,16 +92,4 @@ public class Rodovia {
         this.regAdmMunicipio = regAdmMunicipio;
     }
 
-    @Override
-    public String toString() {
-        return "Rodovia{" +
-                "idRodovia=" + idRodovia +
-                ", nomeRodovia='" + nomeRodovia + '\'' +
-                ", denominacaoRodovia='" + denominacaoRodovia + '\'' +
-                ", nomeConcessionaria='" + nomeConcessionaria + '\'' +
-                ", municipioRodovia='" + municipioRodovia + '\'' +
-                ", regionalDer='" + regionalDer + '\'' +
-                ", regAdmMunicipio='" + regAdmMunicipio + '\'' +
-                '}';
-    }
 }

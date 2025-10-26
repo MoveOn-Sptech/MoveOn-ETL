@@ -96,7 +96,7 @@ public class Main {
 
         } catch (Exception e) {
             logger.error("Não foi possivel salvar as rodovias da base de dados");
-            return;
+            System.exit(0);
         }
 
         logger.info("Finalizando processo de extração das rodovias da base de dados");
@@ -108,6 +108,8 @@ public class Main {
         rowIteratorAcidente.next();
 
         logger.info("Iniciando processo de extração dos acidentes da base de dados");
+
+        List<Acidente> acidentes = new ArrayList<>();
         while (rowIteratorAcidente.hasNext()) {
             Row row = rowIteratorAcidente.next();
             Rodovia rodovia = new Rodovia(row);
@@ -130,8 +132,17 @@ public class Main {
                     logger.info("Lendo da linha " + (row.getRowNum() - 1000) + " Até " + row.getRowNum());
                 }
                 Acidente acidente = new Acidente(row, rodovia);
-                acidenteDao.save(acidente);
+                acidentes.add(acidente);
             }
+        }
+
+        try {
+            acidenteDao.saveAll(acidentes, connection);
+        } catch (Exception e){
+            logger.error("Não foi possivel salvar os acidentes da base de dados");
+
+            System.exit(0);
+
         }
         logger.info("Finalizando processo de extração dos acidentes da base de dados");
         logger.info("Acidentes cadastradas com sucesso ");

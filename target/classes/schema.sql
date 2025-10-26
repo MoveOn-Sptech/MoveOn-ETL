@@ -4,9 +4,9 @@ USER moveon;
 
 CREATE TABLE logs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      typeLog VARCHAR(50),
-    description TEXT,
-    createdAt TIMESTAMP(6)
+    tipo VARCHAR(50),
+    descricao TEXT,
+    dataCriacao TIMESTAMP(6)
 );
 
 CREATE TABLE Rodovia (

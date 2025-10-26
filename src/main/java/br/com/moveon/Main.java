@@ -62,8 +62,8 @@ public class Main {
         Integer idRodovia = 1;
         Integer rodoviasNaoValidas = 0;
 
-        HashMap<Rodovia, Integer> rodovias = new HashMap<>();
-
+        HashMap<Rodovia, Integer> rodoviasId = new HashMap<>();
+        List<Rodovia> rodovias = new ArrayList<>();
         logger.info("Iniciando processo de extração das rodovias da base de dados");
 
         while (rowIterator.hasNext()) {
@@ -76,21 +76,29 @@ public class Main {
             ) {
 
                 Rodovia rodovia = new Rodovia(row);
-                boolean existeRodovia = rodovias.get(rodovia) == null;
+                boolean existeRodovia = rodoviasId.get(rodovia) == null;
 
                 if (existeRodovia) {
-                    rodovias.put(rodovia, idRodovia);
+                    rodoviasId.put(rodovia, idRodovia);
 
                     rodovia.setIdRodovia(idRodovia);
-                    rodoviaDao.save(rodovia);
+                    rodovias.add(rodovia);
                     idRodovia++;
                 }
             } else {
                 rodoviasNaoValidas++;
             }
-
         }
-        logger.info("Rodovias cadastradas com sucesso ao todo foram " + idRodovia + " cadastradas e " + rodoviasNaoValidas + " não cadastradas");
+
+        try {
+            rodoviaDao.saveAll(rodovias, connection);
+            logger.info("Rodovias cadastradas com sucesso ao todo foram " + idRodovia + " cadastradas e " + rodoviasNaoValidas + " não cadastradas");
+
+        } catch (Exception e) {
+            logger.error("Não foi possivel salvar as rodovias da base de dados");
+            return;
+        }
+
         logger.info("Finalizando processo de extração das rodovias da base de dados");
 
 
@@ -103,7 +111,7 @@ public class Main {
         while (rowIteratorAcidente.hasNext()) {
             Row row = rowIteratorAcidente.next();
             Rodovia rodovia = new Rodovia(row);
-            rodovia.setIdRodovia(rodovias.get(rodovia));
+            rodovia.setIdRodovia(rodoviasId.get(rodovia));
 
             if (
                     row.getCell(0) != null &&

@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class Main {
 
 
         S3Client s3Client = new S3Provider().getS3Client();
-        String bucketName = "s3-moveon-prod-source";
+        String bucketName = "henry-franz-ramos-arcaya-2025-2006";
         String keyObject = "2024_dezmil.xlsx";
         logger.info("Estabelecendo conexão com a AWS BUCKET: " + bucketName);
 
@@ -61,7 +62,7 @@ public class Main {
         Integer idRodovia = 1;
         Integer rodoviasNaoValidas = 0;
 
-        List<Rodovia> rodovias = new ArrayList<>();
+        HashMap<Rodovia, Integer> rodovias = new HashMap<>();
 
         logger.info("Iniciando processo de extração das rodovias da base de dados");
 
@@ -75,12 +76,13 @@ public class Main {
             ) {
 
                 Rodovia rodovia = new Rodovia(row);
-                Rodovia rodoviaEncontrada = rodoviaDao.select(rodovia);
+                boolean existeRodovia = rodovias.get(rodovia) == null;
 
-                if (rodoviaEncontrada == null) {
+                if (existeRodovia) {
+                    rodovias.put(rodovia, idRodovia);
+
                     rodovia.setIdRodovia(idRodovia);
                     rodoviaDao.save(rodovia);
-                    rodovias.add(rodovia);
                     idRodovia++;
                 }
             } else {
@@ -101,20 +103,7 @@ public class Main {
         while (rowIteratorAcidente.hasNext()) {
             Row row = rowIteratorAcidente.next();
             Rodovia rodovia = new Rodovia(row);
-
-            for (Rodovia rodoviaAtual : rodovias) {
-                if (
-                        rodoviaAtual.getNomeRodovia().equals(rodovia.getNomeRodovia()) &&
-                        rodoviaAtual.getDenominacaoRodovia().equals(rodovia.getDenominacaoRodovia()) &&
-                        rodoviaAtual.getNomeConcessionaria().equals(rodovia.getNomeConcessionaria()) &&
-                        rodoviaAtual.getMunicipioRodovia().equals(rodovia.getMunicipioRodovia()) &&
-                        rodoviaAtual.getRegionalDer().equals(rodovia.getRegionalDer()) &&
-                        rodoviaAtual.getRegAdmMunicipio().equals(rodovia.getRegAdmMunicipio())
-                ) {
-                    rodovia.setIdRodovia(rodoviaAtual.getIdRodovia());
-                    break;
-                }
-            }
+            rodovia.setIdRodovia(rodovias.get(rodovia));
 
             if (
                     row.getCell(0) != null &&

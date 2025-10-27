@@ -140,10 +140,9 @@ public class Main {
             acidenteDao.saveAll(acidentes, connection);
         } catch (Exception e){
             logger.error("Não foi possivel salvar os acidentes da base de dados");
-
             System.exit(0);
-
         }
+
         logger.info("Finalizando processo de extração dos acidentes da base de dados");
         logger.info("Acidentes cadastradas com sucesso ");
         logger.info("Finalizando processo etl");

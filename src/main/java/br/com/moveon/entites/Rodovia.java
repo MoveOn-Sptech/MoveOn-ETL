@@ -92,4 +92,15 @@ public class Rodovia {
         this.regAdmMunicipio = regAdmMunicipio;
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        Rodovia rodovia = (Rodovia) object;
+        return  Objects.equals(nomeRodovia, rodovia.nomeRodovia) && Objects.equals(denominacaoRodovia, rodovia.denominacaoRodovia) && Objects.equals(nomeConcessionaria, rodovia.nomeConcessionaria) && Objects.equals(municipioRodovia, rodovia.municipioRodovia) && Objects.equals(regionalDer, rodovia.regionalDer) && Objects.equals(regAdmMunicipio, rodovia.regAdmMunicipio);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nomeRodovia, denominacaoRodovia, nomeConcessionaria, municipioRodovia, regionalDer, regAdmMunicipio);
+    }
 }

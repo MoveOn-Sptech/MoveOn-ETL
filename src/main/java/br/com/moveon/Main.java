@@ -2,8 +2,10 @@ package br.com.moveon;
 
 import br.com.moveon.connection.DatabaseConnection;
 import br.com.moveon.daos.AcidenteDao;
+import br.com.moveon.daos.ConcessionariaDao;
 import br.com.moveon.daos.RodoviaDao;
 import br.com.moveon.entites.Acidente;
+import br.com.moveon.entites.Concessionaria;
 import br.com.moveon.entites.Rodovia;
 import br.com.moveon.providers.Logger;
 import br.com.moveon.providers.S3Provider;
@@ -25,18 +27,15 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-
         DatabaseConnection connection = new DatabaseConnection();
-        RodoviaDao rodoviaDao = new RodoviaDao(connection.getJdbcTemplate());
 
         Logger logger = new Logger(connection.getJdbcTemplate());
 
         logger.info("Iniciando processo ETL da base de dados da artesp:");
 
-
         S3Client s3Client = new S3Provider().getS3Client();
-        String bucketName = "henry-franz-ramos-arcaya-2025-2006";
-        String keyObject = "2024_dezmil.xlsx";
+        String bucketName = System.getenv("AWS_BUCKET_NAME");
+        String keyObject = System.getenv("AWS_BUCKET_KEY_OBJECT");
         logger.info("Estabelecendo conexão com a AWS BUCKET: " + bucketName);
 
 
@@ -51,48 +50,76 @@ public class Main {
             Files.copy(stream, new File(getObjectRequest.key()).toPath());
 
 
-        Workbook workbook = new XSSFWorkbook("./" + keyObject);
+        Workbook workbook = new XSSFWorkbook("./2024.xlsx");
         Sheet sheet = workbook.getSheetAt(0);
-        Iterator<Row> rowIterator = sheet.rowIterator();
+
+        Iterator<Row> rowIteratorConcessionaria = sheet.rowIterator();
+        rowIteratorConcessionaria.next();
+
+        ConcessionariaDao concessionariaDao = new ConcessionariaDao(connection.getJdbcTemplate());
+
+        logger.info("Limpando a base de dados no banco mysql referente ao ano de 2024");
+        concessionariaDao.truncate();
+
+        HashMap<String, Integer> concessionariasId = new HashMap<>();
+        List<Concessionaria> concessionarias = new ArrayList<>();
+
+        logger.info("Iniciando processo de extração das concessionarias da base de dados");
+
+        while (rowIteratorConcessionaria.hasNext()) {
+            Row row = rowIteratorConcessionaria.next();
+            boolean naoExisteConcessionaria = concessionariasId.get(row.getCell(1).toString()) == null;
+
+            if (naoExisteConcessionaria) {
+                Concessionaria concessionaria = new Concessionaria(concessionarias.size() + 1, row.getCell(1).toString());
+                concessionariasId.put(concessionaria.getNomeConcessionaria(), concessionaria.getIdConcessionaria());
+                concessionarias.add(concessionaria);
+            }
+        }
+
+        try {
+            concessionariaDao.saveAll(concessionarias, connection);
+            logger.info("Concessionarias cadastradas com sucesso ao todo foram " + concessionarias.size());
+
+        } catch (Exception e) {
+            logger.error("Não foi possivel salvar as Concessionarias da base de dados");
+            System.exit(0);
+        }
 
 
-        rowIterator.next();
-        rodoviaDao.truncate();
-
-        Integer idRodovia = 1;
-        Integer rodoviasNaoValidas = 0;
+        RodoviaDao rodoviaDao = new RodoviaDao(connection.getJdbcTemplate());
 
         HashMap<Rodovia, Integer> rodoviasId = new HashMap<>();
         List<Rodovia> rodovias = new ArrayList<>();
+
         logger.info("Iniciando processo de extração das rodovias da base de dados");
 
-        while (rowIterator.hasNext()) {
-            Row row = rowIterator.next();
+        Iterator<Row> rowIteratorRodovia = sheet.rowIterator();
+
+        rowIteratorRodovia.next();
+
+        while (rowIteratorRodovia.hasNext()) {
+            Row row = rowIteratorRodovia.next();
 
 //            PRIORIDADE NOME DA CONCESSONARIA E DA RODOVIA
-            if (
-                    row.getCell(2) != null &&
-                    row.getCell(1) != null
-            ) {
+            if (rodoviaValidaParaSalvar(row)) {
+                Integer fkConcessionaria = concessionariasId.get(row.getCell(1).toString());
+                Rodovia rodovia = new Rodovia(row, fkConcessionaria);
+                boolean naoExisteRodovia = rodoviasId.get(rodovia) == null;
 
-                Rodovia rodovia = new Rodovia(row);
-                boolean existeRodovia = rodoviasId.get(rodovia) == null;
+                if (naoExisteRodovia) {
+                    Integer idRodovia = rodovias.size() + 1;
 
-                if (existeRodovia) {
                     rodoviasId.put(rodovia, idRodovia);
-
                     rodovia.setIdRodovia(idRodovia);
                     rodovias.add(rodovia);
-                    idRodovia++;
                 }
-            } else {
-                rodoviasNaoValidas++;
             }
         }
 
         try {
             rodoviaDao.saveAll(rodovias, connection);
-            logger.info("Rodovias cadastradas com sucesso ao todo foram " + idRodovia + " cadastradas e " + rodoviasNaoValidas + " não cadastradas");
+            logger.info("Rodovias cadastradas com sucesso ao todo foram " + rodovias.size());
 
         } catch (Exception e) {
             logger.error("Não foi possivel salvar as rodovias da base de dados");
@@ -112,24 +139,15 @@ public class Main {
         List<Acidente> acidentes = new ArrayList<>();
         while (rowIteratorAcidente.hasNext()) {
             Row row = rowIteratorAcidente.next();
-            Rodovia rodovia = new Rodovia(row);
+            Rodovia rodovia = new Rodovia(row, concessionariasId.get(row.getCell(1).toString()));
+
             rodovia.setIdRodovia(rodoviasId.get(rodovia));
 
-            if (
-                    row.getCell(0) != null &&
-                    row.getCell(3) != null &&
-                    row.getCell(5) != null &&
-                    row.getCell(7) != null &&
-                    row.getCell(6) != null &&
-                    row.getCell(8) != null &&
-                    row.getCell(10) != null &&
-                    row.getCell(14) != null &&
-                    row.getCell(15) != null &&
-                    row.getCell(16) != null &&
-                    row.getCell(19) != null
-            ) {
-                if (row.getRowNum() % 1000 == 0) {
-                    logger.info("Lendo da linha " + (row.getRowNum() - 1000) + " Até " + row.getRowNum());
+            if (acidenteValidoParaSalvar(row)) {
+                if (row.getRowNum() % 10000 == 0) {
+                    logger.info("Lendo da linha " + (row.getRowNum() - 10000) + " Até " + row.getRowNum());
+                } else if (row.getRowNum() == sheet.getLastRowNum()) {
+                    logger.info("Lendo da linha " + ((row.getRowNum() / 10000) * 10000) + " Até " + row.getRowNum());
                 }
                 Acidente acidente = new Acidente(row, rodovia);
                 acidentes.add(acidente);
@@ -138,14 +156,34 @@ public class Main {
 
         try {
             acidenteDao.saveAll(acidentes, connection);
-        } catch (Exception e){
+            logger.info("Acidentes cadastradas com sucesso ao todo foram " + acidentes.size());
+        } catch (Exception e) {
             logger.error("Não foi possivel salvar os acidentes da base de dados");
             System.exit(0);
         }
 
         logger.info("Finalizando processo de extração dos acidentes da base de dados");
         logger.info("Acidentes cadastradas com sucesso ");
-        logger.info("Finalizando processo etl");
+        logger.info("Finalizando processo etl, ao todo foram cadastradas %d Concessionarias , %d Rodovias  e %d Acidentes ".formatted(concessionarias.size(), rodovias.size(), acidentes.size()));
     }
 
+
+    private static Boolean acidenteValidoParaSalvar(Row row) {
+        return row.getCell(0) != null &&
+               row.getCell(3) != null &&
+               row.getCell(5) != null &&
+               row.getCell(7) != null &&
+               row.getCell(6) != null &&
+               row.getCell(8) != null &&
+               row.getCell(10) != null &&
+               row.getCell(14) != null &&
+               row.getCell(15) != null &&
+               row.getCell(16) != null &&
+               row.getCell(19) != null;
+    }
+
+    private static Boolean rodoviaValidaParaSalvar(Row row) {
+        return row.getCell(2) != null &&
+               row.getCell(1) != null;
+    }
 }

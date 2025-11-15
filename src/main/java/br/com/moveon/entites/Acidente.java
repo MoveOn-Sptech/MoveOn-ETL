@@ -1,5 +1,7 @@
 package br.com.moveon.entites;
 
+import br.com.moveon.entites.enums.Clima;
+import br.com.moveon.entites.enums.TipoPista;
 import org.apache.poi.ss.usermodel.Row;
 
 import java.time.LocalDate;
@@ -12,12 +14,12 @@ public class Acidente {
     private LocalDateTime dtHoraAcidente;
     private String tipoAcidente;
     private String causaAcidente;
-    private String clima;
+    private Clima clima;
     private String veiculosEnvolvidos;
     private Integer vitFatal;
     private Integer vitGrave;
     private Integer vitLeve;
-    private String tipoPista;
+    private TipoPista tipoPista;
     private Integer fkRodovia;
 
     public Acidente() {
@@ -33,12 +35,12 @@ public class Acidente {
         this.dtHoraAcidente = dataFormatada;
         this.tipoAcidente = row.getCell(7).toString();
         this.causaAcidente = row.getCell(6).toString();
-        this.clima = row.getCell(8).toString();
+        this.clima = Clima.getEnumFromString(row.getCell(8).toString());
         this.veiculosEnvolvidos = row.getCell(10).toString();
         this.vitFatal = (int) row.getCell(14).getNumericCellValue();
         this.vitGrave = (int) row.getCell(15).getNumericCellValue();
         this.vitLeve = (int) row.getCell(16).getNumericCellValue();
-        this.tipoPista = row.getCell(19).toString();
+        this.tipoPista = TipoPista.getEnumFromString(row.getCell(19).toString());
         this.fkRodovia = rodovia.getIdRodovia();
     }
 
@@ -48,12 +50,12 @@ public class Acidente {
         this.dtHoraAcidente = dtHoraAcidente;
         this.tipoAcidente = tipoAcidente;
         this.causaAcidente = causaAcidente;
-        this.clima = clima;
+        this.clima = Clima.getEnumFromString(clima);
         this.veiculosEnvolvidos = veiculosEnvolvidos;
         this.vitFatal = vitFatal;
         this.vitGrave = vitGrave;
         this.vitLeve = vitLeve;
-        this.tipoPista = tipoPista;
+        this.tipoPista = TipoPista.getEnumFromString(tipoPista);
         this.fkRodovia = fkRodovia;
     }
 
@@ -103,11 +105,11 @@ public class Acidente {
         this.causaAcidente = causaAcidente;
     }
 
-    public String getClima() {
+    public Clima getClima() {
         return clima;
     }
 
-    public void setClima(String clima) {
+    public void setClima(Clima clima) {
         this.clima = clima;
     }
 
@@ -143,11 +145,11 @@ public class Acidente {
         this.vitLeve = vitLeve;
     }
 
-    public String getTipoPista() {
+    public TipoPista getTipoPista() {
         return tipoPista;
     }
 
-    public void setTipoPista(String tipoPista) {
+    public void setTipoPista(TipoPista tipoPista) {
         this.tipoPista = tipoPista;
     }
 

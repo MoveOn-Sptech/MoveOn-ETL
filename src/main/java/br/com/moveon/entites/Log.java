@@ -1,7 +1,6 @@
 package br.com.moveon.entites;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 public class Log {
     private Long id;

@@ -9,14 +9,20 @@ CREATE TABLE logs (
     dataCriacao TIMESTAMP(6)
 );
 
+CREATE TABLE IF NOT EXISTS Concessionaria(
+    idConcessionaria INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nomeConcessionaria VARCHAR(45)
+);
+
 CREATE TABLE Rodovia (
     idRodovia INT NOT NULL PRIMARY KEY auto_increment,
     nomeRodovia VARCHAR(45),
     denominacaoRodovia VARCHAR(45),
-    nomeConcessionaria VARCHAR(45),
     municipioRodovia VARCHAR(45),
     regionalDer VARCHAR(45),
-    regAdmMunicipio VARCHAR(45)
+    fkConcessionaria INT NOT NULL, -- Chave estrangeira para Concessonaeia
+    FOREIGN KEY (fkConcessionaria) REFERENCES Concessionaria(idConcessionaria)
+
 );
 
 -- Tabela Acidente

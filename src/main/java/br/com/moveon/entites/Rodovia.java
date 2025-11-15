@@ -9,10 +9,10 @@ public class Rodovia {
     private Integer idRodovia;
     private String nomeRodovia;
     private String denominacaoRodovia;
-    private String nomeConcessionaria;
     private String municipioRodovia;
     private String regionalDer;
-    private String regAdmMunicipio;
+    private Integer fkConcessionaria;
+
 
     public Rodovia() {
     }
@@ -20,20 +20,21 @@ public class Rodovia {
     public Rodovia(Row row) {
         this.nomeRodovia = row.getCell(2).toString(); // nomeRodovia
         this.denominacaoRodovia = row.getCell(20) != null ? row.getCell(20).toString() : ""; //denominacaoRodovia
-        this.nomeConcessionaria = row.getCell(1).toString(); //nomeConcessionaria
         this.municipioRodovia = row.getCell(21) != null ? row.getCell(21).toString() : ""; //municipioRodovia
         this.regionalDer = row.getCell(22) != null ? row.getCell(22).toString() : "";//regionalDer
-        this.regAdmMunicipio = row.getCell(22) != null ? row.getCell(23).toString() : "";//regAdmMunicipio
+    }
+
+    public Rodovia(Row row, Integer fkConcessionaria) {
+        this(row);
+        this.fkConcessionaria = fkConcessionaria;
     }
 
     public Rodovia(String nomeRodovia, String denominacaoRodovia, String nomeConcessionaria, String municipioRodovia, String regionalDer, String regAdmMunicipio) {
         this.idRodovia = null;
         this.nomeRodovia = nomeRodovia;
         this.denominacaoRodovia = denominacaoRodovia;
-        this.nomeConcessionaria = nomeConcessionaria;
         this.municipioRodovia = municipioRodovia;
         this.regionalDer = regionalDer;
-        this.regAdmMunicipio = regAdmMunicipio;
     }
 
     public Integer getIdRodovia() {
@@ -60,13 +61,6 @@ public class Rodovia {
         this.denominacaoRodovia = denominacaoRodovia;
     }
 
-    public String getNomeConcessionaria() {
-        return nomeConcessionaria;
-    }
-
-    public void setNomeConcessionaria(String nomeConcessionaria) {
-        this.nomeConcessionaria = nomeConcessionaria;
-    }
 
     public String getMunicipioRodovia() {
         return municipioRodovia;
@@ -84,23 +78,23 @@ public class Rodovia {
         this.regionalDer = regionalDer;
     }
 
-    public String getRegAdmMunicipio() {
-        return regAdmMunicipio;
+    public Integer getFkConcessionaria() {
+        return fkConcessionaria;
     }
 
-    public void setRegAdmMunicipio(String regAdmMunicipio) {
-        this.regAdmMunicipio = regAdmMunicipio;
+    public void setFkConcessionaria(Integer fkConcessionaria) {
+        this.fkConcessionaria = fkConcessionaria;
     }
 
     @Override
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
         Rodovia rodovia = (Rodovia) object;
-        return  Objects.equals(nomeRodovia, rodovia.nomeRodovia) && Objects.equals(denominacaoRodovia, rodovia.denominacaoRodovia) && Objects.equals(nomeConcessionaria, rodovia.nomeConcessionaria) && Objects.equals(municipioRodovia, rodovia.municipioRodovia) && Objects.equals(regionalDer, rodovia.regionalDer) && Objects.equals(regAdmMunicipio, rodovia.regAdmMunicipio);
+        return Objects.equals(nomeRodovia, rodovia.nomeRodovia) && Objects.equals(fkConcessionaria, rodovia.fkConcessionaria);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nomeRodovia, denominacaoRodovia, nomeConcessionaria, municipioRodovia, regionalDer, regAdmMunicipio);
+        return Objects.hash(nomeRodovia, fkConcessionaria);
     }
 }

@@ -1,5 +1,7 @@
 package br.com.moveon.entites;
 
+import br.com.moveon.services.utils.ExcelColumnIndex;
+import org.apache.poi.ss.usermodel.Row;
 import java.util.Objects;
 
 public class Concessionaria {
@@ -9,6 +11,11 @@ public class Concessionaria {
     private String nomeConcessionaria;
 
     public Concessionaria() {
+    }
+
+    public Concessionaria(Integer idConcessionaria, Row row) {
+        this.idConcessionaria = idConcessionaria;
+        this.nomeConcessionaria = row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString();
     }
 
     public Concessionaria(Integer idConcessionaria, String nomeConcessionaria) {
@@ -44,11 +51,4 @@ public class Concessionaria {
         return Objects.hash(idConcessionaria, nomeConcessionaria);
     }
 
-    @Override
-    public String toString() {
-        return "Concessionaria{" +
-               "idConcessionaria=" + idConcessionaria +
-               ", nomeConcessionaria='" + nomeConcessionaria + '\'' +
-               '}';
-    }
 }

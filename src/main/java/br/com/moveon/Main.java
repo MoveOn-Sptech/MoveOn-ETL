@@ -1,189 +1,33 @@
 package br.com.moveon;
 
 import br.com.moveon.connection.DatabaseConnection;
-import br.com.moveon.daos.AcidenteDao;
-import br.com.moveon.daos.ConcessionariaDao;
-import br.com.moveon.daos.RodoviaDao;
-import br.com.moveon.entites.Acidente;
-import br.com.moveon.entites.Concessionaria;
-import br.com.moveon.entites.Rodovia;
 import br.com.moveon.providers.Logger;
-import br.com.moveon.providers.S3Provider;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import br.com.moveon.services.ETLService;
+import br.com.moveon.services.S3Service;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
         DatabaseConnection connection = new DatabaseConnection();
-
         Logger logger = new Logger(connection.getJdbcTemplate());
+
+        Workbook workbook = new XSSFWorkbook(System.getenv("AWS_BUCKET_KEY_OBJECT"));
 
         logger.info("Iniciando processo ETL da base de dados da artesp:");
 
-        S3Client s3Client = new S3Provider().getS3Client();
-        String bucketName = System.getenv("AWS_BUCKET_NAME");
-        String keyObject = System.getenv("AWS_BUCKET_KEY_OBJECT");
-        logger.info("Estabelecendo conexão com a AWS BUCKET: " + bucketName);
+        S3Service s3Service = new S3Service(logger);
+        s3Service.execute();
 
-
-        logger.info("Realizando download do arquivo " + keyObject + " da base da dados do bucket " + bucketName);
-        //        BAIXANDO ARQUIVOS
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(keyObject).build();
-
-        InputStream stream = s3Client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
-        boolean fileExists = new File(getObjectRequest.key()).exists();
-
-        if (!fileExists)
-            Files.copy(stream, new File(getObjectRequest.key()).toPath());
-
-
-        Workbook workbook = new XSSFWorkbook("./2024.xlsx");
-        Sheet sheet = workbook.getSheetAt(0);
-
-        Iterator<Row> rowIteratorConcessionaria = sheet.rowIterator();
-        rowIteratorConcessionaria.next();
-
-        ConcessionariaDao concessionariaDao = new ConcessionariaDao(connection.getJdbcTemplate());
-
-        logger.info("Limpando a base de dados no banco mysql referente ao ano de 2024");
-        concessionariaDao.truncate();
-
-        HashMap<String, Integer> concessionariasId = new HashMap<>();
-        List<Concessionaria> concessionarias = new ArrayList<>();
-
-        logger.info("Iniciando processo de extração das concessionarias da base de dados");
-
-        while (rowIteratorConcessionaria.hasNext()) {
-            Row row = rowIteratorConcessionaria.next();
-            boolean naoExisteConcessionaria = concessionariasId.get(row.getCell(1).toString()) == null;
-
-            if (naoExisteConcessionaria) {
-                Concessionaria concessionaria = new Concessionaria(concessionarias.size() + 1, row.getCell(1).toString());
-                concessionariasId.put(concessionaria.getNomeConcessionaria(), concessionaria.getIdConcessionaria());
-                concessionarias.add(concessionaria);
-            }
-        }
-
-        try {
-            concessionariaDao.saveAll(concessionarias, connection);
-            logger.info("Concessionarias cadastradas com sucesso ao todo foram " + concessionarias.size());
-
-        } catch (Exception e) {
-            logger.error("Não foi possivel salvar as Concessionarias da base de dados");
-            System.exit(0);
-        }
-
-
-        RodoviaDao rodoviaDao = new RodoviaDao(connection.getJdbcTemplate());
-
-        HashMap<Rodovia, Integer> rodoviasId = new HashMap<>();
-        List<Rodovia> rodovias = new ArrayList<>();
-
-        logger.info("Iniciando processo de extração das rodovias da base de dados");
-
-        Iterator<Row> rowIteratorRodovia = sheet.rowIterator();
-
-        rowIteratorRodovia.next();
-
-        while (rowIteratorRodovia.hasNext()) {
-            Row row = rowIteratorRodovia.next();
-
-//            PRIORIDADE NOME DA CONCESSONARIA E DA RODOVIA
-            if (rodoviaValidaParaSalvar(row)) {
-                Integer fkConcessionaria = concessionariasId.get(row.getCell(1).toString());
-                Rodovia rodovia = new Rodovia(row, fkConcessionaria);
-                boolean naoExisteRodovia = rodoviasId.get(rodovia) == null;
-
-                if (naoExisteRodovia) {
-                    Integer idRodovia = rodovias.size() + 1;
-
-                    rodoviasId.put(rodovia, idRodovia);
-                    rodovia.setIdRodovia(idRodovia);
-                    rodovias.add(rodovia);
-                }
-            }
-        }
-
-        try {
-            rodoviaDao.saveAll(rodovias, connection);
-            logger.info("Rodovias cadastradas com sucesso ao todo foram " + rodovias.size());
-
-        } catch (Exception e) {
-            logger.error("Não foi possivel salvar as rodovias da base de dados");
-            System.exit(0);
-        }
-
-        logger.info("Finalizando processo de extração das rodovias da base de dados");
-
-
-        AcidenteDao acidenteDao = new AcidenteDao(connection.getJdbcTemplate());
-
-        Iterator<Row> rowIteratorAcidente = sheet.rowIterator();
-        rowIteratorAcidente.next();
-
-        logger.info("Iniciando processo de extração dos acidentes da base de dados");
-
-        List<Acidente> acidentes = new ArrayList<>();
-        while (rowIteratorAcidente.hasNext()) {
-            Row row = rowIteratorAcidente.next();
-            Rodovia rodovia = new Rodovia(row, concessionariasId.get(row.getCell(1).toString()));
-
-            rodovia.setIdRodovia(rodoviasId.get(rodovia));
-
-            if (acidenteValidoParaSalvar(row)) {
-                if (row.getRowNum() % 10000 == 0) {
-                    logger.info("Lendo da linha " + (row.getRowNum() - 10000) + " Até " + row.getRowNum());
-                } else if (row.getRowNum() == sheet.getLastRowNum()) {
-                    logger.info("Lendo da linha " + ((row.getRowNum() / 10000) * 10000) + " Até " + row.getRowNum());
-                }
-                Acidente acidente = new Acidente(row, rodovia);
-                acidentes.add(acidente);
-            }
-        }
-
-        try {
-            acidenteDao.saveAll(acidentes, connection);
-            logger.info("Acidentes cadastradas com sucesso ao todo foram " + acidentes.size());
-        } catch (Exception e) {
-            logger.error("Não foi possivel salvar os acidentes da base de dados");
-            System.exit(0);
-        }
+        ETLService etlService = new ETLService(connection, logger, workbook);
+        etlService.execute();
 
         logger.info("Finalizando processo de extração dos acidentes da base de dados");
         logger.info("Acidentes cadastradas com sucesso ");
-        logger.info("Finalizando processo etl, ao todo foram cadastradas %d Concessionarias , %d Rodovias  e %d Acidentes ".formatted(concessionarias.size(), rodovias.size(), acidentes.size()));
-    }
-
-
-    private static Boolean acidenteValidoParaSalvar(Row row) {
-        return row.getCell(0) != null &&
-               row.getCell(3) != null &&
-               row.getCell(5) != null &&
-               row.getCell(7) != null &&
-               row.getCell(6) != null &&
-               row.getCell(8) != null &&
-               row.getCell(10) != null &&
-               row.getCell(14) != null &&
-               row.getCell(15) != null &&
-               row.getCell(16) != null &&
-               row.getCell(19) != null;
-    }
-
-    private static Boolean rodoviaValidaParaSalvar(Row row) {
-        return row.getCell(2) != null &&
-               row.getCell(1) != null;
+        logger.info("Finalizando processo etl");
     }
 }

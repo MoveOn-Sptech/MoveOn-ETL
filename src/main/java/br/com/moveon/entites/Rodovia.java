@@ -1,5 +1,6 @@
 package br.com.moveon.entites;
 
+import br.com.moveon.services.utils.ExcelColumnIndex;
 import org.apache.poi.ss.usermodel.Row;
 
 import java.util.Objects;
@@ -18,10 +19,10 @@ public class Rodovia {
     }
 
     public Rodovia(Row row) {
-        this.nomeRodovia = row.getCell(2).toString(); // nomeRodovia
-        this.denominacaoRodovia = row.getCell(20) != null ? row.getCell(20).toString() : ""; //denominacaoRodovia
-        this.municipioRodovia = row.getCell(21) != null ? row.getCell(21).toString() : ""; //municipioRodovia
-        this.regionalDer = row.getCell(22) != null ? row.getCell(22).toString() : "";//regionalDer
+        this.nomeRodovia = row.getCell(ExcelColumnIndex.RODOVIA_NOME).toString(); // nomeRodovia
+        this.denominacaoRodovia = row.getCell(ExcelColumnIndex.RODOVIA_DENOMINACAO) != null ? row.getCell(ExcelColumnIndex.RODOVIA_DENOMINACAO).toString() : ""; //denominacaoRodovia
+        this.municipioRodovia = row.getCell(ExcelColumnIndex.RODOVIA_MUNICIPIO) != null ? row.getCell(ExcelColumnIndex.RODOVIA_MUNICIPIO).toString() : ""; //municipioRodovia
+        this.regionalDer = row.getCell(ExcelColumnIndex.RODOVIA_REGIONAL_DER) != null ? row.getCell(ExcelColumnIndex.RODOVIA_REGIONAL_DER).toString() : "";//regionalDer
     }
 
     public Rodovia(Row row, Integer fkConcessionaria) {
@@ -97,4 +98,11 @@ public class Rodovia {
     public int hashCode() {
         return Objects.hash(nomeRodovia, fkConcessionaria);
     }
+
+
+    public static Boolean validaParaSalvar(Row row) {
+        return row.getCell(ExcelColumnIndex.RODOVIA_NOME) != null &&
+               row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME) != null;
+    }
+
 }

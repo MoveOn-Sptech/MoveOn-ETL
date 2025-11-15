@@ -2,6 +2,7 @@ package br.com.moveon.entites;
 
 import br.com.moveon.entites.enums.Clima;
 import br.com.moveon.entites.enums.TipoPista;
+import br.com.moveon.services.utils.ExcelColumnIndex;
 import org.apache.poi.ss.usermodel.Row;
 
 import java.time.LocalDate;
@@ -26,21 +27,28 @@ public class Acidente {
     }
 
     public Acidente(Row row, Rodovia rodovia) {
-        String dataString = row.getCell(5).toString();
+        String dataString = row.getCell(ExcelColumnIndex.ACIDENTE_DATA_HORA_STRING).toString();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime dataFormatada = LocalDateTime.parse(dataString, formatter);
 
-        this.idAcidente = (int) row.getCell(0).getNumericCellValue();
-        this.marcoKm = row.getCell(3).getNumericCellValue();
+        this.idAcidente = (int) row.getCell(ExcelColumnIndex.ACIDENTE_ID).getNumericCellValue();
+        this.marcoKm = row.getCell(ExcelColumnIndex.ACIDENTE_MARCO_KM).getNumericCellValue();
+
         this.dtHoraAcidente = dataFormatada;
-        this.tipoAcidente = row.getCell(7).toString();
-        this.causaAcidente = row.getCell(6).toString();
-        this.clima = Clima.getEnumFromString(row.getCell(8).toString());
-        this.veiculosEnvolvidos = row.getCell(10).toString();
-        this.vitFatal = (int) row.getCell(14).getNumericCellValue();
-        this.vitGrave = (int) row.getCell(15).getNumericCellValue();
-        this.vitLeve = (int) row.getCell(16).getNumericCellValue();
-        this.tipoPista = TipoPista.getEnumFromString(row.getCell(19).toString());
+
+        this.tipoAcidente = row.getCell(ExcelColumnIndex.ACIDENTE_TIPO).toString();
+        this.causaAcidente = row.getCell(ExcelColumnIndex.ACIDENTE_CAUSA).toString();
+
+        this.clima = Clima.getEnumFromString(row.getCell(ExcelColumnIndex.ACIDENTE_CLIMA).toString());
+
+        this.veiculosEnvolvidos = row.getCell(ExcelColumnIndex.ACIDENTE_VEICULOS_ENVOLVIDOS).toString();
+
+        this.vitFatal = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_FATAL).getNumericCellValue();
+        this.vitGrave = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_GRAVE).getNumericCellValue();
+        this.vitLeve = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE).getNumericCellValue();
+
+        this.tipoPista = TipoPista.getEnumFromString(row.getCell(ExcelColumnIndex.ACIDENTE_TIPO_PISTA).toString());
+
         this.fkRodovia = rodovia.getIdRodovia();
     }
 
@@ -57,10 +65,6 @@ public class Acidente {
         this.vitLeve = vitLeve;
         this.tipoPista = TipoPista.getEnumFromString(tipoPista);
         this.fkRodovia = fkRodovia;
-    }
-
-    public Acidente(Row row) {
-
     }
 
 
@@ -177,5 +181,20 @@ public class Acidente {
                ", tipoPista='" + tipoPista + '\'' +
                ", fkRodovia=" + fkRodovia +
                '}';
+    }
+
+
+    public static Boolean validoParaSalvar(Row row) {
+        return row.getCell(ExcelColumnIndex.ACIDENTE_ID) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_MARCO_KM) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_DATA_HORA_STRING) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_CAUSA) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_TIPO) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_CLIMA) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_VEICULOS_ENVOLVIDOS) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_VIT_FATAL) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_VIT_GRAVE) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE) != null &&
+               row.getCell(ExcelColumnIndex.ACIDENTE_TIPO_PISTA) != null;
     }
 }

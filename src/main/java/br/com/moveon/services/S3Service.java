@@ -2,22 +2,22 @@ package br.com.moveon.services;
 
 import br.com.moveon.providers.Logger;
 import br.com.moveon.providers.S3Provider;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-
 public class S3Service {
+
     private final S3Client s3Client;
     private final Logger logger;
 
     public S3Service(Logger logger) {
-        this.s3Client =new S3Provider().getS3Client();
+        this.s3Client = new S3Provider().getS3Client();
         this.logger = logger;
     }
 
@@ -28,8 +28,8 @@ public class S3Service {
         this.downloadFileFromS3(bucketName, keyObject);
     }
 
-
-    public File downloadFileFromS3(String bucketName, String keyObject) throws IOException {
+    public File downloadFileFromS3(String bucketName, String keyObject)
+        throws IOException {
         logger.info("Realizando download do arquivo " + keyObject + "...");
 
         File localFile = new File(keyObject);
@@ -40,11 +40,16 @@ public class S3Service {
         }
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(keyObject)
-                .build();
+            .bucket(bucketName)
+            .key(keyObject)
+            .build();
 
-        try (InputStream stream = s3Client.getObject(getObjectRequest, ResponseTransformer.toInputStream())) {
+        try (
+            InputStream stream = s3Client.getObject(
+                getObjectRequest,
+                ResponseTransformer.toInputStream()
+            )
+        ) {
             Files.copy(stream, localFile.toPath());
             logger.info("Download concluído com sucesso.");
             return localFile;
@@ -53,6 +58,4 @@ public class S3Service {
             throw new IOException("Falha no download do S3.", e);
         }
     }
-
-
 }

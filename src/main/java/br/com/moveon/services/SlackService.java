@@ -1,5 +1,8 @@
 package br.com.moveon.services;
 
+import br.com.moveon.services.dtos.OpenDmByUserIdRequestDTO;
+import br.com.moveon.services.dtos.SendNotificationRequestDTO;
+import br.com.moveon.services.utils.SlackClientApiUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -11,13 +14,10 @@ import java.net.http.HttpResponse;
 
 public class SlackService {
 
-    private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
     private final String token = System.getenv("SLACK_BOT_TOKEN");
+    private final SlackClientApiUtil slackClientApiUtil = new SlackClientApiUtil();
 
-    // ---------------------------------------------------------
-    // Enviar DM apenas chamando este método
-    // ---------------------------------------------------------
     public void sendDirectMessage(String email, String message)
             throws IOException, InterruptedException {
 
@@ -29,13 +29,11 @@ public class SlackService {
         postMessage(channel, message);       // POST
     }
 
-    // ---------------------------------------------------------
-    // 1) Buscar userId pelo e-mail
-    // ---------------------------------------------------------
+
     private String lookupUserId(String email)
             throws IOException, InterruptedException {
 
-        JsonNode json = getJson(
+        JsonNode json = this.slackClientApiUtil.getJson(
                 "https://slack.com/api/users.lookupByEmail?email=" + email
         );
 
@@ -45,15 +43,12 @@ public class SlackService {
         return json.get("user").get("id").asText();
     }
 
-    // ---------------------------------------------------------
-    // 2) Abrir canal de DM com o userId
-    // ---------------------------------------------------------
     private String openDM(String userId)
             throws IOException, InterruptedException {
+        OpenDmByUserIdRequestDTO openDmByUserIdRequestDTO = new OpenDmByUserIdRequestDTO(userId);
+        String body = this.mapper.writeValueAsString(openDmByUserIdRequestDTO);
 
-        String body = "{ \"users\": \"" + userId + "\" }";
-
-        JsonNode json = postJson(
+        JsonNode json = this.slackClientApiUtil.postJson(
                 "https://slack.com/api/conversations.open",
                 body
         );
@@ -64,15 +59,12 @@ public class SlackService {
         return json.get("channel").get("id").asText();
     }
 
-    // ---------------------------------------------------------
-    // 3) Enviar mensagem para o canal da DM
-    // ---------------------------------------------------------
     private void postMessage(String channel, String text)
             throws IOException, InterruptedException {
+        SendNotificationRequestDTO sendNotificationRequestDTO = new SendNotificationRequestDTO(channel, text);
+        String body = this.mapper.writeValueAsString(sendNotificationRequestDTO);
 
-        String body = "{ \"channel\": \"" + channel + "\", \"text\": \"" + text + "\" }";
-
-        JsonNode json = postJson(
+        JsonNode json = this.slackClientApiUtil.postJson(
                 "https://slack.com/api/chat.postMessage",
                 body
         );
@@ -90,35 +82,5 @@ public class SlackService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    // ---------------------------------------------------------
-    // Helpers genéricos (reduzem 30 linhas)
-    // ---------------------------------------------------------
-    private JsonNode getJson(String url)
-            throws IOException, InterruptedException {
-
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Authorization", "Bearer " + token)
-                .GET()
-                .build();
-
-        String body = client.send(req, HttpResponse.BodyHandlers.ofString()).body();
-        return mapper.readTree(body);
-    }
-
-    private JsonNode postJson(String url, String body)
-            throws IOException, InterruptedException {
-
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Authorization", "Bearer " + token)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-
-        String response = client.send(req, HttpResponse.BodyHandlers.ofString()).body();
-        return mapper.readTree(response);
     }
 }

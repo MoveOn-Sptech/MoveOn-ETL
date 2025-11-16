@@ -9,20 +9,51 @@ import br.com.moveon.entites.Concessionaria;
 import br.com.moveon.entites.Rodovia;
 import br.com.moveon.providers.Logger;
 import br.com.moveon.services.utils.ExcelColumnIndex;
+import br.com.moveon.services.utils.SlackDefaultMessages;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-public record ETLService(DatabaseConnection connection, Logger logger, Workbook workbook) {
+public class ETLService {
+    private DatabaseConnection connection;
+    private final Logger logger;
+    private final SlackService slackService;
+    private Workbook workbook;
+
+
+    public ETLService(Logger logger, DatabaseConnection connection, SlackService slackService) {
+        this.logger = logger;
+        this.connection = connection;
+        this.slackService = slackService;
+
+        try {
+            this.workbook = new XSSFWorkbook(System.getenv("AWS_BUCKET_KEY_OBJECT"));
+//            this.workbook = new XSSFWorkbook("example-error.xlsx");
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.warn("ops houve um erro: " + e.getMessage());
+            slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.ERROR_PROCESS);
+            System.exit(0);
+        }
+
+    }
 
     public void execute() {
-        HashMap<String, Integer> mapConcessionariaFk = this.extractAndSaveConcessionarias();
-        HashMap<Rodovia, Integer> mapRodoviaFk = this.extractAndSaveRodovias(mapConcessionariaFk);
-        this.extractAndSaveAcidentes(mapConcessionariaFk, mapRodoviaFk);
+        try {
+            HashMap<String, Integer> mapConcessionariaFk = this.extractAndSaveConcessionarias();
+            HashMap<Rodovia, Integer> mapRodoviaFk = this.extractAndSaveRodovias(mapConcessionariaFk);
+            this.extractAndSaveAcidentes(mapConcessionariaFk, mapRodoviaFk);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Ops hove um erro em executar o etl da aplicação: " + e.getMessage());
+            System.exit(0);
+        }
     }
 
     public HashMap<String, Integer> extractAndSaveConcessionarias() {

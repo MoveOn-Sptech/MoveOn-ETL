@@ -4,30 +4,31 @@ import br.com.moveon.connection.DatabaseConnection;
 import br.com.moveon.providers.Logger;
 import br.com.moveon.services.ETLService;
 import br.com.moveon.services.S3Service;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import software.amazon.awssdk.services.s3.model.*;
+import br.com.moveon.services.SlackService;
 
 import java.io.*;
 
+import br.com.moveon.services.utils.SlackDefaultMessages;
+
 public class Main {
+
 
     public static void main(String[] args) throws IOException {
         DatabaseConnection connection = new DatabaseConnection();
         Logger logger = new Logger(connection.getJdbcTemplate());
-
-        Workbook workbook = new XSSFWorkbook(System.getenv("AWS_BUCKET_KEY_OBJECT"));
+        SlackService slackService = new SlackService(logger);
 
         logger.info("Iniciando processo ETL da base de dados da artesp:");
 
         S3Service s3Service = new S3Service(logger);
         s3Service.execute();
 
-        ETLService etlService = new ETLService(connection, logger, workbook);
+        ETLService etlService = new ETLService(logger, connection, slackService);
         etlService.execute();
 
-        logger.info("Finalizando processo de extração dos acidentes da base de dados");
-        logger.info("Acidentes cadastradas com sucesso ");
+        slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.SUCCESS_PROCESS);
+        slackService.sendDirectMessage("henry.arcaya@sptech.school", SlackDefaultMessages.SUCCESS_PROCESS);
+
         logger.info("Finalizando processo etl");
     }
 }

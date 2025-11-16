@@ -2,10 +2,12 @@ package br.com.moveon.services;
 
 import br.com.moveon.providers.Logger;
 import br.com.moveon.providers.S3Provider;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -21,15 +23,21 @@ public class S3Service {
         this.logger = logger;
     }
 
-    public void execute() throws IOException {
+    public void execute() {
         String bucketName = System.getenv("AWS_BUCKET_NAME");
         String keyObject = System.getenv("AWS_BUCKET_KEY_OBJECT");
 
-        this.downloadFileFromS3(bucketName, keyObject);
+        try {
+            this.downloadFileFromS3(bucketName, keyObject);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Ops hove um erro em realizar o dowload no bucket: " + bucketName + " com key: " + keyObject);
+            System.exit(0);
+        }
     }
 
     public File downloadFileFromS3(String bucketName, String keyObject)
-        throws IOException {
+            throws IOException {
         logger.info("Realizando download do arquivo " + keyObject + "...");
 
         File localFile = new File(keyObject);
@@ -40,15 +48,15 @@ public class S3Service {
         }
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-            .bucket(bucketName)
-            .key(keyObject)
-            .build();
+                .bucket(bucketName)
+                .key(keyObject)
+                .build();
 
         try (
-            InputStream stream = s3Client.getObject(
-                getObjectRequest,
-                ResponseTransformer.toInputStream()
-            )
+                InputStream stream = s3Client.getObject(
+                        getObjectRequest,
+                        ResponseTransformer.toInputStream()
+                )
         ) {
             Files.copy(stream, localFile.toPath());
             logger.info("Download concluído com sucesso.");

@@ -1,5 +1,6 @@
 package br.com.moveon.services;
 
+import br.com.moveon.providers.Logger;
 import br.com.moveon.services.dtos.OpenDmByUserIdRequestDTO;
 import br.com.moveon.services.dtos.SendNotificationRequestDTO;
 import br.com.moveon.services.utils.SlackClientApiUtil;
@@ -7,10 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 public class SlackService {
 
@@ -18,15 +15,26 @@ public class SlackService {
     private final String token = System.getenv("SLACK_BOT_TOKEN");
     private final SlackClientApiUtil slackClientApiUtil = new SlackClientApiUtil();
 
-    public void sendDirectMessage(String email, String message)
-            throws IOException, InterruptedException {
+    private Logger logger;
 
-        if (token == null)
-            throw new RuntimeException("SLACK_BOT_TOKEN ausente");
+    public SlackService(Logger logger) {
+        this.logger = logger;
+    }
 
-        String userId = lookupUserId(email); // GET
-        String channel = openDM(userId);     // POST
-        postMessage(channel, message);       // POST
+    public void sendDirectMessage(String email, String message) {
+
+        try {
+            if (token == null)
+                throw new RuntimeException("SLACK_BOT_TOKEN ausente");
+
+            String userId = lookupUserId(email); // GET
+            String channel = openDM(userId);     // POST
+            postMessage(channel, message);       // POST
+        } catch (Exception e) {
+            logger.error("Ops hove um erro em enviar mensagens no direct: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(0);
+        }
     }
 
 
@@ -80,7 +88,8 @@ public class SlackService {
         try {
             postMessage(channel, text);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Ops hove um erro em enviar mensagem em canais publico no slack: " + e.getMessage());
+            System.exit(0);
         }
     }
 }

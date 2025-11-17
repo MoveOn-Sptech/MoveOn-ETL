@@ -9,6 +9,7 @@ public final class ExcelColumnIndex {
     public static final int RODOVIA_DENOMINACAO = 20;
     public static final int RODOVIA_MUNICIPIO = 21;
     public static final int RODOVIA_REGIONAL_DER = 22;
+    public static final int RODOVIA_REGIONAL_ADM_SP = 24;
 
     // --- Colunas para a Entidade Acidente ---
     public static final int ACIDENTE_ID = 0;

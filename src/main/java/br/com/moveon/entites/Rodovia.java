@@ -12,6 +12,7 @@ public class Rodovia {
     private String denominacaoRodovia;
     private String municipioRodovia;
     private String regionalDer;
+    private String regionalAdmSp;
     private Integer fkConcessionaria;
 
 
@@ -23,6 +24,7 @@ public class Rodovia {
         this.denominacaoRodovia = row.getCell(ExcelColumnIndex.RODOVIA_DENOMINACAO) != null ? row.getCell(ExcelColumnIndex.RODOVIA_DENOMINACAO).toString() : ""; //denominacaoRodovia
         this.municipioRodovia = row.getCell(ExcelColumnIndex.RODOVIA_MUNICIPIO) != null ? row.getCell(ExcelColumnIndex.RODOVIA_MUNICIPIO).toString() : ""; //municipioRodovia
         this.regionalDer = row.getCell(ExcelColumnIndex.RODOVIA_REGIONAL_DER) != null ? row.getCell(ExcelColumnIndex.RODOVIA_REGIONAL_DER).toString() : "";//regionalDer
+        this.regionalAdmSp = row.getCell(ExcelColumnIndex.RODOVIA_REGIONAL_ADM_SP) != null ? row.getCell(ExcelColumnIndex.RODOVIA_REGIONAL_ADM_SP).toString() : "";
     }
 
     public Rodovia(Row row, Integer fkConcessionaria) {
@@ -30,13 +32,6 @@ public class Rodovia {
         this.fkConcessionaria = fkConcessionaria;
     }
 
-    public Rodovia(String nomeRodovia, String denominacaoRodovia, String nomeConcessionaria, String municipioRodovia, String regionalDer, String regAdmMunicipio) {
-        this.idRodovia = null;
-        this.nomeRodovia = nomeRodovia;
-        this.denominacaoRodovia = denominacaoRodovia;
-        this.municipioRodovia = municipioRodovia;
-        this.regionalDer = regionalDer;
-    }
 
     public Integer getIdRodovia() {
         return idRodovia;
@@ -85,6 +80,14 @@ public class Rodovia {
 
     public void setFkConcessionaria(Integer fkConcessionaria) {
         this.fkConcessionaria = fkConcessionaria;
+    }
+
+    public String getRegionalAdmSp() {
+        return regionalAdmSp;
+    }
+
+    public void setRegionalAdmSp(String regionalAdmSp) {
+        this.regionalAdmSp = regionalAdmSp;
     }
 
     @Override

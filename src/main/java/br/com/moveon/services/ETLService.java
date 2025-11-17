@@ -14,7 +14,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -117,7 +116,7 @@ public class ETLService {
         }
 
         try {
-            RodoviaDao rodoviaDao = new RodoviaDao(this.connection.getJdbcTemplate());
+            RodoviaDao rodoviaDao = new RodoviaDao();
 
             rodoviaDao.saveAll(rodovias, connection);
             logger.info("Rodovias cadastradas com sucesso ao todo foram " + rodovias.size());

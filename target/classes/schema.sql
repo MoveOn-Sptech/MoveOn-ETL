@@ -20,6 +20,7 @@ CREATE TABLE Rodovia (
     denominacaoRodovia VARCHAR(45),
     municipioRodovia VARCHAR(45),
     regionalDer VARCHAR(45),
+    regionalAdmSp VARCHAR(45),
     fkConcessionaria INT NOT NULL, -- Chave estrangeira para Concessonaeia
     FOREIGN KEY (fkConcessionaria) REFERENCES Concessionaria(idConcessionaria)
 

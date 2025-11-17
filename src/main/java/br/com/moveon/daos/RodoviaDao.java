@@ -11,21 +11,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class RodoviaDao {
-    private JdbcTemplate jdbcTemplate;
-
-
-    public RodoviaDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-
     public void saveAll(List<Rodovia> rodovias, DatabaseConnection connection) throws SQLException {
         Connection conn = connection.getBasicDataSource().getConnection();
         conn.setAutoCommit(false);
 
         String query = """
-                INSERT INTO Rodovia (idRodovia,nomeRodovia, denominacaoRodovia, municipioRodovia, regionalDer, fkConcessionaria)
-                     VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO Rodovia (idRodovia,nomeRodovia, denominacaoRodovia, municipioRodovia, regionalDer, regionalAdmSp, fkConcessionaria)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement preparedStatement = conn.prepareStatement(query);) {
             for (Rodovia rodovia : rodovias) {
@@ -34,7 +26,8 @@ public class RodoviaDao {
                 preparedStatement.setString(3, rodovia.getDenominacaoRodovia());
                 preparedStatement.setString(4, rodovia.getMunicipioRodovia());
                 preparedStatement.setString(5, rodovia.getRegionalDer());
-                preparedStatement.setInt(6, rodovia.getFkConcessionaria());
+                preparedStatement.setString(6, rodovia.getRegionalAdmSp());
+                preparedStatement.setInt(7, rodovia.getFkConcessionaria());
                 preparedStatement.addBatch();
             }
 
@@ -48,7 +41,4 @@ public class RodoviaDao {
         }
 
     }
-
-
-
 }

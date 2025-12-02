@@ -116,7 +116,7 @@ public class ETLService {
         }
 
         try {
-            RodoviaDao rodoviaDao = new RodoviaDao();
+            RodoviaDao rodoviaDao = new RodoviaDao(this.connection.getJdbcTemplate());
 
             rodoviaDao.saveAll(rodovias, connection);
             logger.info("Rodovias cadastradas com sucesso ao todo foram " + rodovias.size());

@@ -11,13 +11,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
-public class AcidenteDao {
+public class AcidenteDao extends EntityDao<Acidente> {
 
     private JdbcTemplate jdbcTemplate;
 
     public AcidenteDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+        super(jdbcTemplate);
     }
+
+    @Override
     public void saveAll(List<Acidente> acidentes, DatabaseConnection connection) throws SQLException {
         Connection conn = connection.getBasicDataSource().getConnection();
 
@@ -44,8 +46,7 @@ public class AcidenteDao {
         try (
                 PreparedStatement preparedStatement = conn .prepareStatement(query);
                 ){
-            for (int i = 0; i < acidentes.size(); i++) {
-                Acidente acidente = acidentes.get(i);
+            for (Acidente acidente : acidentes) {
                 preparedStatement.setInt(1, acidente.getIdAcidente());
                 preparedStatement.setDouble(2, acidente.getMarcoKm());
                 preparedStatement.setTimestamp(3, Timestamp.valueOf(acidente.getDtHoraAcidente()));

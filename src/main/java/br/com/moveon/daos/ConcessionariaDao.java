@@ -8,26 +8,27 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
-public class ConcessionariaDao {
-    private JdbcTemplate jdbcTemplate;
-
+public class ConcessionariaDao extends EntityDao<Concessionaria> {
 
     public ConcessionariaDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+        super(jdbcTemplate);
     }
+
 
 
     public void truncate() {
-        this.jdbcTemplate.update("SET FOREIGN_KEY_CHECKS = 0");
-        this.jdbcTemplate.update("DELETE FROM Concessionaria");
-        this.jdbcTemplate.update("DELETE FROM Acidente");
-        this.jdbcTemplate.update("DELETE FROM Rodovia");
-        this.jdbcTemplate.update("SET FOREIGN_KEY_CHECKS = 1");
+        this.getJdbcTemplate().update("SET FOREIGN_KEY_CHECKS = 0");
+        this.getJdbcTemplate().update("DELETE FROM Concessionaria");
+        this.getJdbcTemplate().update("DELETE FROM Acidente");
+        this.getJdbcTemplate().update("DELETE FROM Rodovia");
+        this.getJdbcTemplate().update("SET FOREIGN_KEY_CHECKS = 1");
     }
 
 
 
+    @Override
     public void saveAll(List<Concessionaria> concessionarias, DatabaseConnection connection) throws SQLException {
         Connection conn = connection.getBasicDataSource().getConnection();
         conn.setAutoCommit(false);

@@ -1,6 +1,7 @@
 package br.com.moveon.daos;
 
 import br.com.moveon.connection.DatabaseConnection;
+import br.com.moveon.entites.Concessionaria;
 import br.com.moveon.entites.Rodovia;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,7 +11,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-public class RodoviaDao {
+public class RodoviaDao extends EntityDao<Rodovia> {
+
+    public RodoviaDao(JdbcTemplate jdbcTemplate) {
+        super(jdbcTemplate);
+    }
+
+    @Override
     public void saveAll(List<Rodovia> rodovias, DatabaseConnection connection) throws SQLException {
         Connection conn = connection.getBasicDataSource().getConnection();
         conn.setAutoCommit(false);

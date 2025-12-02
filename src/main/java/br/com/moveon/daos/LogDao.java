@@ -43,8 +43,5 @@ public class LogDao {
         );
     }
 
-    public List<Log> getAll(){
-        return this.jdbcTemplate.query("SELECT * FROM logs ORDER BY id DESC", new BeanPropertyRowMapper<>(Log.class));
-    }
 
 }

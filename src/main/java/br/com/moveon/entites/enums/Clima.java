@@ -8,6 +8,8 @@ public enum Clima{
     GAROA("GAROA"),
     GRANIZO("GRANIZO"),
     NAO_INFORMADA("NÃO INFORMADA"),
+    CHUVA_TORRENCIAL("CHUVA TORRENCIAL"),
+    CHUVA_COM_VENTANIA("CHUVA COM VENTANIA"),
     VENTO_FORTE("VENTO FORTE");
 
     private final String nome;

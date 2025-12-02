@@ -40,25 +40,24 @@ public class AcidenteDao extends EntityDao<Acidente> {
                     tipoPista,
                     fkRodovia
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
 
         try (
                 PreparedStatement preparedStatement = conn .prepareStatement(query);
                 ){
             for (Acidente acidente : acidentes) {
-                preparedStatement.setInt(1, acidente.getIdAcidente());
-                preparedStatement.setDouble(2, acidente.getMarcoKm());
-                preparedStatement.setTimestamp(3, Timestamp.valueOf(acidente.getDtHoraAcidente()));
-                preparedStatement.setString(4, acidente.getTipoAcidente());
-                preparedStatement.setString(5, acidente.getCausaAcidente());
-                preparedStatement.setString(6, acidente.getClima().toString());
-                preparedStatement.setString(7, acidente.getVeiculosEnvolvidos());
-                preparedStatement.setInt(8, acidente.getVitFatal());
-                preparedStatement.setInt(9, acidente.getVitGrave());
-                preparedStatement.setInt(10, acidente.getVitLeve());
-                preparedStatement.setString(11, acidente.getTipoPista().toString());
-                preparedStatement.setInt(12, acidente.getFkRodovia());
+                preparedStatement.setDouble(1, acidente.getMarcoKm());
+                preparedStatement.setTimestamp(2, Timestamp.valueOf(acidente.getDtHoraAcidente()));
+                preparedStatement.setString(3, acidente.getTipoAcidente());
+                preparedStatement.setString(4, acidente.getCausaAcidente());
+                preparedStatement.setString(5, acidente.getClima().toString());
+                preparedStatement.setString(6, acidente.getVeiculosEnvolvidos());
+                preparedStatement.setInt(7, acidente.getVitFatal());
+                preparedStatement.setInt(8, acidente.getVitGrave());
+                preparedStatement.setInt(9, acidente.getVitLeve());
+                preparedStatement.setString(10, acidente.getTipoPista().toString());
+                preparedStatement.setInt(11, acidente.getFkRodovia());
 
                 preparedStatement.addBatch();
             }

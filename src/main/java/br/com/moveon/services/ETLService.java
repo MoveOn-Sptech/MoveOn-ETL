@@ -23,17 +23,19 @@ public class ETLService {
     private DatabaseConnection connection;
     private final Logger logger;
     private final SlackService slackService;
-    private Workbook workbook;
+    private List<Workbook> workbooks = new ArrayList<>();
 
-
-    public ETLService(Logger logger, DatabaseConnection connection, SlackService slackService) {
+    public ETLService(List<String> fileNames, Logger logger, DatabaseConnection connection, SlackService slackService) {
         this.logger = logger;
         this.connection = connection;
         this.slackService = slackService;
 
         try {
-            this.workbook = new XSSFWorkbook(System.getenv("AWS_BUCKET_KEY_OBJECT"));
-//            this.workbook = new XSSFWorkbook("example-error.xlsx");
+            for (String fileName : fileNames) {
+                Workbook workbook = new XSSFWorkbook(fileName);
+                this.workbooks.add(workbook);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             logger.warn("ops houve um erro: " + e.getMessage());
@@ -56,27 +58,31 @@ public class ETLService {
     }
 
     public HashMap<String, Integer> extractAndSaveConcessionarias() {
-        Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
-        iterator.next();
+        ConcessionariaDao concessionariaDao = new ConcessionariaDao(connection.getJdbcTemplate());
+        concessionariaDao.truncate();
 
         HashMap<String, Integer> mapConcessionariaFk = new HashMap<>();
         List<Concessionaria> concessionarias = new ArrayList<>();
 
-        while (iterator.hasNext()) {
-            Row row = iterator.next();
-            boolean naoExisteConcessionaria = mapConcessionariaFk.get(row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString()) == null;
+        for (Workbook workbook : workbooks) {
+            Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
+            iterator.next();
 
-            if (naoExisteConcessionaria) {
-                Concessionaria concessionaria = new Concessionaria(concessionarias.size() + 1, row);
-                mapConcessionariaFk.put(concessionaria.getNomeConcessionaria(), concessionaria.getIdConcessionaria());
-                concessionarias.add(concessionaria);
+
+            while (iterator.hasNext()) {
+                Row row = iterator.next();
+                boolean naoExisteConcessionaria = mapConcessionariaFk.get(row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString()) == null;
+
+                if (naoExisteConcessionaria) {
+                    Concessionaria concessionaria = new Concessionaria(concessionarias.size() + 1, row);
+                    mapConcessionariaFk.put(concessionaria.getNomeConcessionaria(), concessionaria.getIdConcessionaria());
+                    concessionarias.add(concessionaria);
+                }
             }
+
         }
 
         try {
-            ConcessionariaDao concessionariaDao = new ConcessionariaDao(connection.getJdbcTemplate());
-            concessionariaDao.truncate();
-
             concessionariaDao.saveAll(concessionarias, connection);
             logger.info("Concessionarias cadastradas com sucesso ao todo foram " + concessionarias.size());
 
@@ -89,28 +95,30 @@ public class ETLService {
     }
 
     public HashMap<Rodovia, Integer> extractAndSaveRodovias(HashMap<String, Integer> mapConcessionariaFk) {
-        Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
-        iterator.next();
-
         HashMap<Rodovia, Integer> mapRodoviaFk = new HashMap<>();
         List<Rodovia> rodovias = new ArrayList<>();
 
+        for (Workbook workbook : workbooks) {
+            Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
+            iterator.next();
 
-        while (iterator.hasNext()) {
-            Row row = iterator.next();
+
+            while (iterator.hasNext()) {
+                Row row = iterator.next();
 
 //            PRIORIDADE NOME DA CONCESSONARIA E DA RODOVIA
-            if (Rodovia.validaParaSalvar(row)) {
-                Integer fkConcessionaria = mapConcessionariaFk.get(row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString());
-                Rodovia rodovia = new Rodovia(row, fkConcessionaria);
-                boolean naoExisteRodovia = mapRodoviaFk.get(rodovia) == null;
+                if (Rodovia.validaParaSalvar(row)) {
+                    Integer fkConcessionaria = mapConcessionariaFk.get(row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString());
+                    Rodovia rodovia = new Rodovia(row, fkConcessionaria);
+                    boolean naoExisteRodovia = mapRodoviaFk.get(rodovia) == null;
 
-                if (naoExisteRodovia) {
-                    Integer idRodovia = rodovias.size() + 1;
+                    if (naoExisteRodovia) {
+                        Integer idRodovia = rodovias.size() + 1;
 
-                    mapRodoviaFk.put(rodovia, idRodovia);
-                    rodovia.setIdRodovia(idRodovia);
-                    rodovias.add(rodovia);
+                        mapRodoviaFk.put(rodovia, idRodovia);
+                        rodovia.setIdRodovia(idRodovia);
+                        rodovias.add(rodovia);
+                    }
                 }
             }
         }
@@ -125,43 +133,45 @@ public class ETLService {
             logger.error("Não foi possivel salvar as rodovias da base de dados");
             System.exit(0);
         }
-
         return mapRodoviaFk;
     }
 
     public void extractAndSaveAcidentes(HashMap<String, Integer> mapConcessionariaFk, HashMap<Rodovia, Integer> mapRodoviaFk) {
-        Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
-        iterator.next();
 
-        List<Acidente> acidentes = new ArrayList<>();
+        for (Workbook workbook : workbooks) {
+            Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
+            iterator.next();
 
-        while (iterator.hasNext()) {
-            Row row = iterator.next();
-            Rodovia rodovia = new Rodovia(row, mapConcessionariaFk.get(row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString()));
+            List<Acidente> acidentes = new ArrayList<>();
 
-            rodovia.setIdRodovia(mapRodoviaFk.get(rodovia));
+            while (iterator.hasNext()) {
+                Row row = iterator.next();
+                Rodovia rodovia = new Rodovia(row, mapConcessionariaFk.get(row.getCell(ExcelColumnIndex.CONCESSIONARIA_NOME).toString()));
 
-            if (Acidente.validoParaSalvar(row)) {
-                if (row.getRowNum() % 10000 == 0) {
-                    logger.info("Lendo da linha " + (row.getRowNum() - 10000) + " Até " + row.getRowNum());
-                } else if (row.getRowNum() == workbook.getSheetAt(0).getLastRowNum()) {
-                    logger.info("Lendo da linha " + ((row.getRowNum() / 10000) * 10000) + " Até " + row.getRowNum());
+                rodovia.setIdRodovia(mapRodoviaFk.get(rodovia));
+
+                if (Acidente.validoParaSalvar(row)) {
+                    if (row.getRowNum() % 10000 == 0) {
+                        logger.info("Lendo da linha " + (row.getRowNum() - 10000) + " Até " + row.getRowNum());
+                    } else if (row.getRowNum() == workbook.getSheetAt(0).getLastRowNum()) {
+                        logger.info("Lendo da linha " + ((row.getRowNum() / 10000) * 10000) + " Até " + row.getRowNum());
+                    }
+                    Acidente acidente = new Acidente(row, rodovia);
+                    acidentes.add(acidente);
                 }
-                Acidente acidente = new Acidente(row, rodovia);
-                acidentes.add(acidente);
             }
+
+            try {
+                AcidenteDao acidenteDao = new AcidenteDao(this.connection.getJdbcTemplate());
+
+                acidenteDao.saveAll(acidentes, connection);
+                logger.info("Acidentes cadastradas com sucesso ao todo foram " + acidentes.size());
+            } catch (Exception e) {
+                logger.error("Não foi possivel salvar os acidentes da base de dados");
+                System.exit(0);
+            }
+
         }
-
-        try {
-            AcidenteDao acidenteDao = new AcidenteDao(this.connection.getJdbcTemplate());
-
-            acidenteDao.saveAll(acidentes, connection);
-            logger.info("Acidentes cadastradas com sucesso ao todo foram " + acidentes.size());
-        } catch (Exception e) {
-            logger.error("Não foi possivel salvar os acidentes da base de dados");
-            System.exit(0);
-        }
-
     }
 
 

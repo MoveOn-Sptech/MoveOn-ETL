@@ -20,6 +20,7 @@ public class Acidente {
     private Integer qtdVitGrave;
     private Integer qtdVitLeve;
     private TipoPista tipoPista;
+    private String veiculosEnvolvidos;
     private Integer fkRodovia;
     private Integer fkConcessionaria;
 
@@ -46,6 +47,8 @@ public class Acidente {
         this.qtdVitLeve = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE).getNumericCellValue();
 
         this.tipoPista = TipoPista.getEnumFromString(row.getCell(ExcelColumnIndex.ACIDENTE_TIPO_PISTA).toString());
+
+        this.veiculosEnvolvidos = row.getCell(ExcelColumnIndex.ACIDENTE_VEICULOS_ENVOLVIDOS).toString();
 
         this.fkRodovia = rodovia.getIdRodovia();
         this.fkConcessionaria = rodovia.getFkConcessionaria();
@@ -135,6 +138,14 @@ public class Acidente {
 
     public Integer getFkRodovia() {
         return fkRodovia;
+    }
+
+    public String getVeiculosEnvolvidos() {
+        return veiculosEnvolvidos;
+    }
+
+    public void setVeiculosEnvolvidos(String veiculosEnvolvidos) {
+        this.veiculosEnvolvidos = veiculosEnvolvidos;
     }
 
     public void setFkRodovia(Integer fkRodovia) {

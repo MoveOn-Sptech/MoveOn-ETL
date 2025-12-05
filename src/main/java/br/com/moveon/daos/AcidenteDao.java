@@ -38,9 +38,10 @@ public class AcidenteDao extends EntityDao<Acidente> {
                     qtdVitLeve,
                     tipoPista,
                     fkRodovia,
-                    fkConcessionaria
+                    fkConcessionaria,
+                    veiculosEnvolvidos
                 )
-                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
 
         try (
@@ -60,6 +61,7 @@ public class AcidenteDao extends EntityDao<Acidente> {
                 preparedStatement.setString(9, acidente.getTipoPista().toString());
                 preparedStatement.setInt(10, acidente.getFkRodovia());
                 preparedStatement.setInt(11, acidente.getFkConcessionaria());
+                preparedStatement.setString(12, acidente.getVeiculosEnvolvidos());
 
                 preparedStatement.addBatch();
             }

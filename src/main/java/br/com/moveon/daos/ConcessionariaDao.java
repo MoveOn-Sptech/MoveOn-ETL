@@ -34,13 +34,13 @@ public class ConcessionariaDao extends EntityDao<Concessionaria> {
         conn.setAutoCommit(false);
 
         String query = """
-                INSERT INTO Concessionaria (idConcessionaria, nomeConcessionaria)
+                INSERT INTO Concessionaria (idConcessionaria, nome)
                      VALUES (?, ?)
                 """;
         try (PreparedStatement preparedStatement = conn.prepareStatement(query);) {
             for (Concessionaria concessionaria : concessionarias) {
                 preparedStatement.setInt(1, concessionaria.getIdConcessionaria());
-                preparedStatement.setString(2, concessionaria.getNomeConcessionaria());
+                preparedStatement.setString(2, concessionaria.getNome());
 
                 preparedStatement.addBatch();
             }

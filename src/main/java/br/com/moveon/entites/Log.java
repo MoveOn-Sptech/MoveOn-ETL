@@ -3,7 +3,7 @@ package br.com.moveon.entites;
 import java.time.Instant;
 
 public class Log {
-    private Long id;
+    private Integer idLog;
     private String tipo;
     private String descricao;
     private Instant dataCriacao;
@@ -12,25 +12,25 @@ public class Log {
     }
 
     public Log(String tipo, String descricao, Instant dataCriacao) {
-        this.id = null;
+        this.idLog = null;
         this.descricao = descricao;
         this.tipo = tipo;
         this.dataCriacao = dataCriacao;
     }
 
-        public Log(long id, String tipo, String descricao, Instant dataCriacao) {
-        this.id = id;
+    public Log(Integer idLog, String tipo, String descricao, Instant dataCriacao) {
+        this.idLog = idLog;
         this.descricao = descricao;
         this.tipo = tipo;
         this.dataCriacao = dataCriacao;
     }
 
-    public Long getId() {
-        return id;
+    public Integer getIdLog() {
+        return idLog;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setIdLog(Integer idLog) {
+        this.idLog = idLog;
     }
 
     public String getTipo() {

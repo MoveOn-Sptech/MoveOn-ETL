@@ -23,9 +23,9 @@ public class AcidenteDao extends EntityDao<Acidente> {
     public void saveAll(List<Acidente> acidentes, DatabaseConnection connection) throws SQLException {
         Connection conn = connection.getBasicDataSource().getConnection();
 
-        conn .setAutoCommit(false);
+        conn.setAutoCommit(false);
 
-        String query= """
+        String query = """
                 INSERT INTO Acidente (
                     idAcidente,
                     marcoKm,
@@ -33,43 +33,45 @@ public class AcidenteDao extends EntityDao<Acidente> {
                     tipoAcidente,
                     causaAcidente,
                     clima,
-                    veiculosEnvolvidos,
-                    vitFatal,
-                    vitGrave,
-                    vitLeve,
+                    qtdVitFatal,
+                    qtdVitGrave,
+                    qtdVitLeve,
                     tipoPista,
-                    fkRodovia
+                    fkRodovia,
+                    fkConcessionaria
                 )
                 VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
 
         try (
-                PreparedStatement preparedStatement = conn .prepareStatement(query);
-                ){
-            for (Acidente acidente : acidentes) {
+                PreparedStatement preparedStatement = conn.prepareStatement(query);
+        ) {
+            for (int i = 0; i < acidentes.size(); i++) {
+                Acidente acidente = acidentes.get(i);
+
                 preparedStatement.setDouble(1, acidente.getMarcoKm());
                 preparedStatement.setTimestamp(2, Timestamp.valueOf(acidente.getDtHoraAcidente()));
                 preparedStatement.setString(3, acidente.getTipoAcidente());
                 preparedStatement.setString(4, acidente.getCausaAcidente());
                 preparedStatement.setString(5, acidente.getClima().toString());
-                preparedStatement.setString(6, acidente.getVeiculosEnvolvidos());
-                preparedStatement.setInt(7, acidente.getVitFatal());
-                preparedStatement.setInt(8, acidente.getVitGrave());
-                preparedStatement.setInt(9, acidente.getVitLeve());
-                preparedStatement.setString(10, acidente.getTipoPista().toString());
-                preparedStatement.setInt(11, acidente.getFkRodovia());
+                preparedStatement.setInt(6, acidente.getQtdVitFatal());
+                preparedStatement.setInt(7, acidente.getQtdVitGrave());
+                preparedStatement.setInt(8, acidente.getQtdVitLeve());
+                preparedStatement.setString(9, acidente.getTipoPista().toString());
+                preparedStatement.setInt(10, acidente.getFkRodovia());
+                preparedStatement.setInt(11, acidente.getFkConcessionaria());
 
                 preparedStatement.addBatch();
             }
 
             preparedStatement.executeBatch();
 
-            conn .commit();
-        }catch (Exception e){
-            conn .rollback();
+            conn.commit();
+        } catch (Exception e) {
+            conn.rollback();
             e.printStackTrace();
-        }finally {
-            conn .setAutoCommit(true);
+        } finally {
+            conn.setAutoCommit(true);
         }
 
     }

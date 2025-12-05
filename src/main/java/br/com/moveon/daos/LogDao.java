@@ -15,10 +15,10 @@ public class LogDao {
     }
 
     public void save(Log log) {
-        if (log.getId() == null) {
+        if (log.getIdLog() == null) {
             this.jdbcTemplate.update(
                     """
-                            INSERT INTO logs(tipo, descricao, dataCriacao)
+                            INSERT INTO Log(tipo, descricao, dataCriacao)
                                 VALUES (?, ?, ?);
                             """,
                     log.getTipo(),
@@ -30,16 +30,16 @@ public class LogDao {
 
         this.jdbcTemplate.update(
                 """
-                        UPDATE logs SET
+                        UPDATE Log SET
                             tipo =?
                             descricao = ?
                             dataCriacao =?
-                        WHERE id = ?
+                        WHERE idLog = ?
                         """,
                 log.getTipo(),
                 log.getDescricao(),
                 log.getDataCriacao(),
-                log.getId()
+                log.getIdLog()
         );
     }
 

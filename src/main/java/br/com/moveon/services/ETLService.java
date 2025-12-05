@@ -75,7 +75,7 @@ public class ETLService {
 
                 if (naoExisteConcessionaria) {
                     Concessionaria concessionaria = new Concessionaria(concessionarias.size() + 1, row);
-                    mapConcessionariaFk.put(concessionaria.getNomeConcessionaria(), concessionaria.getIdConcessionaria());
+                    mapConcessionariaFk.put(concessionaria.getNome(), concessionaria.getIdConcessionaria());
                     concessionarias.add(concessionaria);
                 }
             }

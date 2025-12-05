@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="IU-252.28238.7">
+    <data-source name="moveon@localhost" uuid="acf8f551-2a67-4b94-b048-e1ee82e3bd20">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MYSQL" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>henry</user-name>
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>

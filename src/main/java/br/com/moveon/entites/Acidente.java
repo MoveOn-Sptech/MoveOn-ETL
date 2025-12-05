@@ -16,12 +16,12 @@ public class Acidente {
     private String tipoAcidente;
     private String causaAcidente;
     private Clima clima;
-    private String veiculosEnvolvidos;
-    private Integer vitFatal;
-    private Integer vitGrave;
-    private Integer vitLeve;
+    private Integer qtdVitFatal;
+    private Integer qtdVitGrave;
+    private Integer qtdVitLeve;
     private TipoPista tipoPista;
     private Integer fkRodovia;
+    private Integer fkConcessionaria;
 
     public Acidente() {
     }
@@ -31,7 +31,6 @@ public class Acidente {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime dataFormatada = LocalDateTime.parse(dataString, formatter);
 
-        this.idAcidente = (int) row.getCell(ExcelColumnIndex.ACIDENTE_ID).getNumericCellValue();
         this.marcoKm = row.getCell(ExcelColumnIndex.ACIDENTE_MARCO_KM).getNumericCellValue();
 
         this.dtHoraAcidente = dataFormatada;
@@ -41,30 +40,15 @@ public class Acidente {
 
         this.clima = Clima.getEnumFromString(row.getCell(ExcelColumnIndex.ACIDENTE_CLIMA).toString());
 
-        this.veiculosEnvolvidos = row.getCell(ExcelColumnIndex.ACIDENTE_VEICULOS_ENVOLVIDOS).toString();
 
-        this.vitFatal = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_FATAL).getNumericCellValue();
-        this.vitGrave = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_GRAVE).getNumericCellValue();
-        this.vitLeve = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE).getNumericCellValue();
+        this.qtdVitFatal = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_FATAL).getNumericCellValue();
+        this.qtdVitGrave = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_GRAVE).getNumericCellValue();
+        this.qtdVitLeve = (int) row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE).getNumericCellValue();
 
         this.tipoPista = TipoPista.getEnumFromString(row.getCell(ExcelColumnIndex.ACIDENTE_TIPO_PISTA).toString());
 
         this.fkRodovia = rodovia.getIdRodovia();
-    }
-
-    public Acidente(Integer idAcidente, Double marcoKm, LocalDateTime dtHoraAcidente, String tipoAcidente, String causaAcidente, String clima, String veiculosEnvolvidos, Integer vitFatal, Integer vitGrave, Integer vitLeve, String tipoPista, Integer fkRodovia) {
-        this.idAcidente = idAcidente;
-        this.marcoKm = marcoKm;
-        this.dtHoraAcidente = dtHoraAcidente;
-        this.tipoAcidente = tipoAcidente;
-        this.causaAcidente = causaAcidente;
-        this.clima = Clima.getEnumFromString(clima);
-        this.veiculosEnvolvidos = veiculosEnvolvidos;
-        this.vitFatal = vitFatal;
-        this.vitGrave = vitGrave;
-        this.vitLeve = vitLeve;
-        this.tipoPista = TipoPista.getEnumFromString(tipoPista);
-        this.fkRodovia = fkRodovia;
+        this.fkConcessionaria = rodovia.getFkConcessionaria();
     }
 
 
@@ -117,36 +101,28 @@ public class Acidente {
         this.clima = clima;
     }
 
-    public String getVeiculosEnvolvidos() {
-        return veiculosEnvolvidos;
+    public Integer getQtdVitFatal() {
+        return qtdVitFatal;
     }
 
-    public void setVeiculosEnvolvidos(String veiculosEnvolvidos) {
-        this.veiculosEnvolvidos = veiculosEnvolvidos;
+    public void setQtdVitFatal(Integer qtdVitFatal) {
+        this.qtdVitFatal = qtdVitFatal;
     }
 
-    public Integer getVitFatal() {
-        return vitFatal;
+    public Integer getQtdVitGrave() {
+        return qtdVitGrave;
     }
 
-    public void setVitFatal(Integer vitFatal) {
-        this.vitFatal = vitFatal;
+    public void setQtdVitGrave(Integer qtdVitGrave) {
+        this.qtdVitGrave = qtdVitGrave;
     }
 
-    public Integer getVitGrave() {
-        return vitGrave;
+    public Integer getQtdVitLeve() {
+        return qtdVitLeve;
     }
 
-    public void setVitGrave(Integer vitGrave) {
-        this.vitGrave = vitGrave;
-    }
-
-    public Integer getVitLeve() {
-        return vitLeve;
-    }
-
-    public void setVitLeve(Integer vitLeve) {
-        this.vitLeve = vitLeve;
+    public void setQtdVitLeve(Integer qtdVitLeve) {
+        this.qtdVitLeve = qtdVitLeve;
     }
 
     public TipoPista getTipoPista() {
@@ -165,36 +141,43 @@ public class Acidente {
         this.fkRodovia = fkRodovia;
     }
 
+    public Integer getFkConcessionaria() {
+        return fkConcessionaria;
+    }
+
+    public void setFkConcessionaria(Integer fkConcessionaria) {
+        this.fkConcessionaria = fkConcessionaria;
+    }
+
     @Override
     public String toString() {
         return "Acidente{" +
-               "idAcidente=" + idAcidente +
-               ", marcoKm=" + marcoKm +
-               ", dtHoraAcidente=" + dtHoraAcidente +
-               ", tipoAcidente='" + tipoAcidente + '\'' +
-               ", causaAcidente='" + causaAcidente + '\'' +
-               ", clima='" + clima + '\'' +
-               ", veiculosEnvolvidos='" + veiculosEnvolvidos + '\'' +
-               ", vitFatal=" + vitFatal +
-               ", vitGrave=" + vitGrave +
-               ", vitLeve=" + vitLeve +
-               ", tipoPista='" + tipoPista + '\'' +
-               ", fkRodovia=" + fkRodovia +
-               '}';
+                "idAcidente=" + idAcidente +
+                ", marcoKm=" + marcoKm +
+                ", dtHoraAcidente=" + dtHoraAcidente +
+                ", tipoAcidente='" + tipoAcidente + '\'' +
+                ", causaAcidente='" + causaAcidente + '\'' +
+                ", clima='" + clima + '\'' +
+                ", qtdVitFatal=" + qtdVitFatal +
+                ", qtdVitGrave=" + qtdVitGrave +
+                ", qtdVitLeve=" + qtdVitLeve +
+                ", tipoPista='" + tipoPista + '\'' +
+                ", fkRodovia=" + fkRodovia +
+                '}';
     }
 
 
     public static Boolean validoParaSalvar(Row row) {
         return row.getCell(ExcelColumnIndex.ACIDENTE_ID) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_MARCO_KM) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_DATA_HORA_STRING) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_CAUSA) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_TIPO) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_CLIMA) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_VEICULOS_ENVOLVIDOS) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_VIT_FATAL) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_VIT_GRAVE) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE) != null &&
-               row.getCell(ExcelColumnIndex.ACIDENTE_TIPO_PISTA) != null;
+                row.getCell(ExcelColumnIndex.ACIDENTE_MARCO_KM) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_DATA_HORA_STRING) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_CAUSA) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_TIPO) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_CLIMA) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_VEICULOS_ENVOLVIDOS) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_VIT_FATAL) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_VIT_GRAVE) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_VIT_LEVE) != null &&
+                row.getCell(ExcelColumnIndex.ACIDENTE_TIPO_PISTA) != null;
     }
 }

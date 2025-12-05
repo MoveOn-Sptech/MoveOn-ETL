@@ -23,15 +23,15 @@ public class RodoviaDao extends EntityDao<Rodovia> {
         conn.setAutoCommit(false);
 
         String query = """
-                INSERT INTO Rodovia (idRodovia,nomeRodovia, denominacaoRodovia, municipioRodovia, regionalDer, regionalAdmSp, fkConcessionaria)
+                INSERT INTO Rodovia (idRodovia, nome, denominacao, municipio, regionalDer, regionalAdmSp, fkConcessionaria)
                      VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement preparedStatement = conn.prepareStatement(query);) {
             for (Rodovia rodovia : rodovias) {
                 preparedStatement.setInt(1, rodovia.getIdRodovia());
-                preparedStatement.setString(2, rodovia.getNomeRodovia());
-                preparedStatement.setString(3, rodovia.getDenominacaoRodovia());
-                preparedStatement.setString(4, rodovia.getMunicipioRodovia());
+                preparedStatement.setString(2, rodovia.getNome());
+                preparedStatement.setString(3, rodovia.getDenominacao());
+                preparedStatement.setString(4, rodovia.getMunicipio());
                 preparedStatement.setString(5, rodovia.getRegionalDer());
                 preparedStatement.setString(6, rodovia.getRegionalAdmSp());
                 preparedStatement.setInt(7, rodovia.getFkConcessionaria());

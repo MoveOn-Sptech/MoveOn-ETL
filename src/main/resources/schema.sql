@@ -1,47 +1,46 @@
 CREATE DATABASE IF NOT EXISTS moveon;
 USE moveon;
 
-
-CREATE TABLE Usuario (
+CREATE TABLE IF NOT EXISTS Usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(255) NOT NULL,
-    cargo VARCHAR(45),
+    cargo VARCHAR(45) NOT NULL,
     email VARCHAR(255) NOT NULL,
     senha VARCHAR(512) NOT NULL,
     dataCadastro DATETIME NOT NULL
 );
 
 
-CREATE TABLE Log (
+CREATE TABLE IF NOT EXISTS Log (
     idLog INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(45) NOT NULL,
-    descricao TEXT,
+    descricao TEXT NOT NULL,
     dataCriacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fkUsuario INT,
     FOREIGN KEY (fkUsuario) REFERENCES Usuario(idUsuario)
 );
 
 
-CREATE TABLE Concessionaria (
+CREATE TABLE IF NOT EXISTS Concessionaria (
     idConcessionaria INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL
 );
 
 
-CREATE TABLE Rodovia (
+CREATE TABLE IF NOT EXISTS Rodovia (
     idRodovia INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
     denominacao VARCHAR(45),
     municipio VARCHAR(45),
     regionalDer VARCHAR(45),
-    regionalAdmSp VARCHAR(45) NOT NULL,
+    regionalAdmSp VARCHAR(45),
     fkConcessionaria INT NOT NULL,
     FOREIGN KEY (fkConcessionaria) REFERENCES Concessionaria(idConcessionaria),
     PRIMARY KEY (idRodovia, fkConcessionaria)
 );
 
 
-CREATE TABLE Notificacao (
+CREATE TABLE IF NOT EXISTS Notificacao (
     idNotificacao INT AUTO_INCREMENT,
     dataCriacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     titulo VARCHAR(45) NOT NULL,
@@ -53,33 +52,22 @@ CREATE TABLE Notificacao (
     PRIMARY KEY (idNotificacao, fkUsuario, fkConcessionaria)
 );
 
-CREATE TABLE Acidente (
+
+CREATE TABLE IF NOT EXISTS Acidente (
     idAcidente INT AUTO_INCREMENT,
-    marcoKm DECIMAL(10, 2),
-    dtHoraAcidente DATETIME,
-    tipoAcidente VARCHAR(45),
-    causaAcidente VARCHAR(45),
-    clima VARCHAR(45),
-    qtdVitFatal INT,
-    qtdVitGrave INT,
-    qtdVitLeve INT,
-    tipoPista VARCHAR(45),
-    fkRodovia INT,
-    fkConcessionaria INT,
+    marcoKm DECIMAL(10, 2) NOT NULL,
+    dtHoraAcidente DATETIME NOT NULL,
+    tipoAcidente VARCHAR(45) NOT NULL,
+    causaAcidente VARCHAR(45) NOT NULL,
+    clima VARCHAR(45) NOT NULL,
+    qtdVitFatal INT NOT NULL,
+    qtdVitGrave INT NOT NULL,
+    qtdVitLeve INT NOT NULL,
+    tipoPista VARCHAR(45) NOT NULL,
+    veiculosEnvolvidos VARCHAR(255) NOT NULL,
+    fkRodovia INT NOT NULL,
+    fkConcessionaria INT NOT NULL,
     FOREIGN KEY (fkRodovia) REFERENCES Rodovia(idRodovia),
     FOREIGN KEY (fkConcessionaria) REFERENCES Rodovia(fkConcessionaria),
     PRIMARY KEY (idAcidente, fkRodovia, fkConcessionaria)
-);
-
-CREATE TABLE Veiculo (
-    idVeiculo INT AUTO_INCREMENT,
-    tipo VARCHAR(45),
-    quantidade INT,
-    fkAcidente INT,
-    fkRodovia INT,
-    fkConcessionaria INT,
-    FOREIGN KEY (fkAcidente) REFERENCES Acidente(idAcidente),
-    FOREIGN KEY (fkRodovia) REFERENCES Acidente(fkRodovia),
-    FOREIGN KEY (fkConcessionaria) REFERENCES Acidente(fkConcessionaria),
-    PRIMARY KEY(idVeiculo, fkAcidente, fkRodovia, fkConcessionaria)
 );

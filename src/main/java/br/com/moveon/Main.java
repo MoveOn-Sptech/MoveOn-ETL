@@ -27,9 +27,6 @@ public class Main {
         ETLService etlService = new ETLService(filenames, logger, connection, slackService);
         etlService.execute();
 
-        slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.SUCCESS_PROCESS);
-        slackService.sendDirectMessage("henry.arcaya@sptech.school", SlackDefaultMessages.SUCCESS_PROCESS);
-
         logger.info("Finalizando processo etl");
     }
 }

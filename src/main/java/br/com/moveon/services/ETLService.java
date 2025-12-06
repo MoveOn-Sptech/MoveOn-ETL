@@ -38,9 +38,13 @@ public class ETLService {
 
             logger.info("Iniciando processo de processar todos acidentes da base de dados");
             this.extractAndSaveAcidentes(mapConcessionariaFk, mapRodoviaFk);
+
+            logger.info("Enviando alerta para canal #alerts no slack");
+            slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.SUCCESS_PROCESS);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Ops houve um erro em executar o ETL: " + e.getMessage());
+            slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.ERROR_PROCESS);
             System.exit(0);
         }
     }

@@ -31,9 +31,12 @@ public class ETLService {
     }
 
     public void execute() {
+        logger.info("Executando ETL Da Artesp");
         try {
             HashMap<String, Integer> mapConcessionariaFk = this.extractAndSaveConcessionarias();
             HashMap<Rodovia, Integer> mapRodoviaFk = this.extractAndSaveRodovias(mapConcessionariaFk);
+
+            logger.info("Iniciando processo de processar todos acidentes da base de dados");
             this.extractAndSaveAcidentes(mapConcessionariaFk, mapRodoviaFk);
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,6 +117,8 @@ public class ETLService {
 
         try {
             for (String fileName : fileNames) {
+                logger.info("Lendo o Arquivo: " + fileName);
+
                 try (Workbook workbook = WorkbookFactory.create(new FileInputStream(fileName))) {
                     Iterator<Row> iterator = workbook.getSheetAt(0).rowIterator();
                     if (iterator.hasNext()) iterator.next();
@@ -127,6 +132,12 @@ public class ETLService {
                         if (Acidente.validoParaSalvar(row)) {
                             Acidente acidente = new Acidente(row, rodovia);
                             buffer.add(acidente);
+
+                            if (row.getRowNum() % 10000 == 0) {
+                                logger.info("Lendo da linha " + (row.getRowNum() - 10000) + " Até " + row.getRowNum());
+                            } else if (row.getRowNum() == workbook.getSheetAt(0).getLastRowNum()) {
+                                logger.info("Lendo da linha " + ((row.getRowNum() / 10000) * 10000) + " Até " + row.getRowNum());
+                            }
                         }
                     }
                     acidenteDao.saveAll(buffer, connection);

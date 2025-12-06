@@ -12,11 +12,6 @@ import java.util.Objects;
 
 public class ConcessionariaDao extends EntityDao<Concessionaria> {
 
-    public ConcessionariaDao(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
-    }
-
-
 
     public void truncate() {
         this.getJdbcTemplate().update("SET FOREIGN_KEY_CHECKS = 0");
@@ -27,17 +22,12 @@ public class ConcessionariaDao extends EntityDao<Concessionaria> {
     }
 
 
-
     @Override
-    public void saveAll(List<Concessionaria> concessionarias, DatabaseConnection connection) throws SQLException {
-        Connection conn = connection.getBasicDataSource().getConnection();
+    public void saveAll(List<Concessionaria> concessionarias) throws SQLException {
+        Connection conn = super.getBasicDataSource().getConnection();
         conn.setAutoCommit(false);
 
-        String query = """
-                INSERT INTO Concessionaria (idConcessionaria, nome)
-                     VALUES (?, ?)
-                """;
-        try (PreparedStatement preparedStatement = conn.prepareStatement(query);) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement(this.query());) {
             for (Concessionaria concessionaria : concessionarias) {
                 preparedStatement.setInt(1, concessionaria.getIdConcessionaria());
                 preparedStatement.setString(2, concessionaria.getNome());
@@ -54,6 +44,14 @@ public class ConcessionariaDao extends EntityDao<Concessionaria> {
             conn.setAutoCommit(true);
         }
 
+    }
+
+    @Override
+    protected String query() {
+        return """
+                INSERT INTO Concessionaria (idConcessionaria, nome)
+                     VALUES (?, ?)
+                """;
     }
 
 

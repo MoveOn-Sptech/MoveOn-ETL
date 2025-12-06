@@ -1,46 +1,53 @@
 package br.com.moveon.daos;
 
 import br.com.moveon.entites.Log;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
-public class LogDao {
+public class LogDao extends EntityDao<Log> {
 
-    private JdbcTemplate jdbcTemplate;
+    @Override
+    public void saveAll(List<Log> logs) {
+       try( Connection conn = super.getBasicDataSource().getConnection()) {
+           conn.setAutoCommit(false);
 
-    public LogDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+           try (PreparedStatement preparedStatement = conn.prepareStatement(this.query());) {
+               conn.setAutoCommit(false);
+
+               for (Log log : logs) {
+                   preparedStatement.setString(1, log.getTipo().name());
+                   preparedStatement.setString(2, log.getDescricao());
+                   preparedStatement.setTimestamp(3, Timestamp.from(log.getDataCriacao()));
+
+                   preparedStatement.addBatch();
+               }
+
+               preparedStatement.execute();
+
+               conn.commit();
+           }   catch (Exception e) {
+               e.printStackTrace();
+           } finally {
+               conn.setAutoCommit(true);
+           }
+
+
+       } catch (SQLException e) {
+           e.printStackTrace();
+       };
+
     }
 
-    public void save(Log log) {
-        if (log.getIdLog() == null) {
-            this.jdbcTemplate.update(
-                    """
-                            INSERT INTO Log(tipo, descricao, dataCriacao)
+    @Override
+    protected String query() {
+        return """
+                 INSERT INTO Log(tipo, descricao, dataCriacao)
                                 VALUES (?, ?, ?);
-                            """,
-                    log.getTipo(),
-                    log.getDescricao(),
-                    log.getDataCriacao()
-            );
-            return;
-        }
-
-        this.jdbcTemplate.update(
-                """
-                        UPDATE Log SET
-                            tipo =?
-                            descricao = ?
-                            dataCriacao =?
-                        WHERE idLog = ?
-                        """,
-                log.getTipo(),
-                log.getDescricao(),
-                log.getDataCriacao(),
-                log.getIdLog()
-        );
+                """;
     }
 
 

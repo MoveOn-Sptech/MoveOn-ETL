@@ -1,7 +1,6 @@
 package br.com.moveon.services;
 
-import br.com.moveon.providers.Logger;
-import br.com.moveon.providers.S3Provider;
+import br.com.moveon.services.utils.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,23 +9,18 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
-public class S3Service {
+public class S3Service extends AbstractService{
+    private final AwsCredentialsProvider credentials;
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(S3Service.class);
-    private final S3Client s3Client;
-    private final Logger logger;
-
-    public S3Service(Logger logger) {
-        this.s3Client = new S3Provider().getS3Client();
-        this.logger = logger;
+    public S3Service() {
+        this.credentials = DefaultCredentialsProvider.create();
     }
 
     public List<String> downloadAllFiles() {
@@ -47,7 +41,7 @@ public class S3Service {
                     filesDownloaded.add(file);
             }
 
-            if(filesDownloaded.isEmpty()) {
+            if (filesDownloaded.isEmpty()) {
                 logger.info("Todos arquivos já estão baixados");
                 return files;
             }
@@ -65,11 +59,25 @@ public class S3Service {
         }
     }
 
-    public void downloadFile(String fileName) throws IOException {
+    public void downloadFile(String fileName) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(System.getenv("AWS_BUCKET_NAME")).key(fileName).build();
-        InputStream stream = s3Client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
+        InputStream stream = this.getS3Client().getObject(getObjectRequest, ResponseTransformer.toInputStream());
         logger.info("Baixando objeto com chave: " + fileName);
-        Files.copy(stream, new File(getObjectRequest.key()).toPath());
+
+        try {
+            Files.copy(stream, new File(getObjectRequest.key()).toPath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.fatal(e.getMessage());
+        }
+    }
+
+    public S3Client getS3Client() {
+        return S3Client.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentials)
+                .build();
     }
 
 }

@@ -13,39 +13,13 @@ import java.util.List;
 
 public class AcidenteDao extends EntityDao<Acidente> {
 
-    private JdbcTemplate jdbcTemplate;
-
-    public AcidenteDao(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
-    }
-
     @Override
-    public void saveAll(List<Acidente> acidentes, DatabaseConnection connection) throws SQLException {
-        Connection conn = connection.getBasicDataSource().getConnection();
+    public void saveAll(List<Acidente> acidentes) throws SQLException {
+        Connection conn = super.getBasicDataSource().getConnection();
 
         conn.setAutoCommit(false);
-
-        String query = """
-                INSERT INTO Acidente (
-                    idAcidente,
-                    marcoKm,
-                    dtHoraAcidente,
-                    tipoAcidente,
-                    causaAcidente,
-                    clima,
-                    qtdVitFatal,
-                    qtdVitGrave,
-                    qtdVitLeve,
-                    tipoPista,
-                    fkRodovia,
-                    fkConcessionaria,
-                    veiculosEnvolvidos
-                )
-                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                """;
-
         try (
-                PreparedStatement preparedStatement = conn.prepareStatement(query);
+                PreparedStatement preparedStatement = conn.prepareStatement(this.query());
         ) {
             for (int i = 0; i < acidentes.size(); i++) {
                 Acidente acidente = acidentes.get(i);
@@ -76,5 +50,27 @@ public class AcidenteDao extends EntityDao<Acidente> {
             conn.setAutoCommit(true);
         }
 
+    }
+
+    @Override
+    protected String query() {
+        return """
+                INSERT INTO Acidente (
+                    idAcidente,
+                    marcoKm,
+                    dtHoraAcidente,
+                    tipoAcidente,
+                    causaAcidente,
+                    clima,
+                    qtdVitFatal,
+                    qtdVitGrave,
+                    qtdVitLeve,
+                    tipoPista,
+                    fkRodovia,
+                    fkConcessionaria,
+                    veiculosEnvolvidos
+                )
+                VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """;
     }
 }

@@ -5,6 +5,8 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 public class DatabaseConnection {
 
+    private final static DatabaseConnection INSTANCE = new DatabaseConnection();
+
     private final JdbcTemplate jdbcTemplate;
     private final BasicDataSource basicDataSource;
 
@@ -16,6 +18,11 @@ public class DatabaseConnection {
 
         this.basicDataSource = basicDataSource;
         this.jdbcTemplate = new JdbcTemplate(basicDataSource);
+    }
+
+
+    public static DatabaseConnection getInstance() {
+        return INSTANCE;
     }
 
     public BasicDataSource getBasicDataSource() {

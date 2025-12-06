@@ -1,24 +1,26 @@
 package br.com.moveon.entites;
 
+import br.com.moveon.entites.enums.TipoLog;
+
 import java.time.Instant;
 
 public class Log {
     private Integer idLog;
-    private String tipo;
+    private TipoLog tipo;
     private String descricao;
     private Instant dataCriacao;
 
     public Log() {
     }
 
-    public Log(String tipo, String descricao, Instant dataCriacao) {
+    public Log(TipoLog tipo, String descricao, Instant dataCriacao) {
         this.idLog = null;
         this.descricao = descricao;
         this.tipo = tipo;
         this.dataCriacao = dataCriacao;
     }
 
-    public Log(Integer idLog, String tipo, String descricao, Instant dataCriacao) {
+    public Log(Integer idLog, TipoLog tipo, String descricao, Instant dataCriacao) {
         this.idLog = idLog;
         this.descricao = descricao;
         this.tipo = tipo;
@@ -33,11 +35,11 @@ public class Log {
         this.idLog = idLog;
     }
 
-    public String getTipo() {
+    public TipoLog getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
+    public void setTipo(TipoLog tipo) {
         this.tipo = tipo;
     }
 
@@ -58,22 +60,10 @@ public class Log {
     }
 
     @Override
-    public String toString() {
-
-        String ANSI_RESET = "\u001B[0m";
-        String ANSI_RED = "\u001B[31m";
-        String ANSI_GREEN = "\u001B[32m";
-        String ANSI_YELLOW = "\u001B[33m";
-
-        String ANSI_COLOR = switch (this.tipo) {
-            case "WARN" -> ANSI_YELLOW;
-            case "ERROR", "FATAL" -> ANSI_RED;
-            default -> ANSI_GREEN;
-        };
-
+        public String toString() {
 
         String templateLog = "%s %s --- [moveon] : %s";
-        return templateLog.formatted(this.dataCriacao, ANSI_COLOR.concat(this.tipo).concat(ANSI_RESET), this.descricao);
+        return templateLog.formatted(this.dataCriacao, this.tipo, this.descricao);
 
     }
 }

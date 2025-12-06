@@ -1,13 +1,12 @@
 package br.com.moveon.services;
 
-import br.com.moveon.connection.DatabaseConnection;
 import br.com.moveon.daos.AcidenteDao;
 import br.com.moveon.daos.ConcessionariaDao;
+import br.com.moveon.daos.EntityDao;
 import br.com.moveon.daos.RodoviaDao;
 import br.com.moveon.entites.Acidente;
 import br.com.moveon.entites.Concessionaria;
 import br.com.moveon.entites.Rodovia;
-import br.com.moveon.providers.Logger;
 import br.com.moveon.services.utils.ExcelColumnIndex;
 import br.com.moveon.services.utils.SlackDefaultMessages;
 import org.apache.poi.ss.usermodel.Row;
@@ -17,40 +16,44 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import java.io.FileInputStream;
 import java.util.*;
 
-public class ETLService {
-    private final DatabaseConnection connection;
-    private final Logger logger;
+public class ETLService extends AbstractService {
     private final SlackService slackService;
     private final List<String> fileNames;
+    private final List<EntityDao> entityDaos = new ArrayList<>();
 
-    public ETLService(List<String> fileNames, Logger logger, DatabaseConnection connection, SlackService slackService) {
-        this.logger = logger;
-        this.connection = connection;
+    public ETLService(List<String> fileNames, SlackService slackService) {
         this.slackService = slackService;
         this.fileNames = fileNames;
+
+        entityDaos.add(new ConcessionariaDao());
+        entityDaos.add(new RodoviaDao());
+        entityDaos.add(new AcidenteDao());
     }
 
     public void execute() {
         logger.info("Executando ETL Da Artesp");
         try {
-            HashMap<String, Integer> mapConcessionariaFk = this.extractAndSaveConcessionarias();
-            HashMap<Rodovia, Integer> mapRodoviaFk = this.extractAndSaveRodovias(mapConcessionariaFk);
+            HashMap<String, Integer> mapConcessionariaFk = this.processarConcessionarias();
+            HashMap<Rodovia, Integer> mapRodoviaFk = this.processarRodovias(mapConcessionariaFk);
 
             logger.info("Iniciando processo de processar todos acidentes da base de dados");
-            this.extractAndSaveAcidentes(mapConcessionariaFk, mapRodoviaFk);
+            this.processarAcidentes(mapConcessionariaFk, mapRodoviaFk);
 
             logger.info("Enviando alerta para canal #alerts no slack");
-            slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.SUCCESS_PROCESS);
+            slackService.sendMessage("#moveon-alerts", SlackDefaultMessages.SUCCESS_PROCESS);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Ops houve um erro em executar o ETL: " + e.getMessage());
-            slackService.sendMessageToChannel("#moveon-alerts", SlackDefaultMessages.ERROR_PROCESS);
+            slackService.sendMessage("#moveon-alerts", SlackDefaultMessages.ERROR_PROCESS);
             System.exit(0);
         }
     }
 
-    public HashMap<String, Integer> extractAndSaveConcessionarias() {
-        ConcessionariaDao concessionariaDao = new ConcessionariaDao(connection.getJdbcTemplate());
+    public HashMap<String, Integer> processarConcessionarias() {
+        ConcessionariaDao concessionariaDao = this.entityDaos.stream()
+                .filter(dao -> dao instanceof ConcessionariaDao)
+                .map( cDao -> (ConcessionariaDao) cDao).findFirst().get();
+
         concessionariaDao.truncate();
 
         HashMap<String, Integer> mapConcessionariaFk = new HashMap<>();
@@ -73,7 +76,7 @@ public class ETLService {
                     }
                 }
             }
-            concessionariaDao.saveAll(buffer, connection);
+            concessionariaDao.saveAll(buffer);
             logger.info("Concessionarias cadastradas: " + buffer.size());
         } catch (Exception e) {
             logger.error("Erro ao salvar concessionarias: " + e.getMessage());
@@ -82,7 +85,10 @@ public class ETLService {
         return mapConcessionariaFk;
     }
 
-    public HashMap<Rodovia, Integer> extractAndSaveRodovias(HashMap<String, Integer> mapConcessionariaFk) {
+    public HashMap<Rodovia, Integer> processarRodovias(HashMap<String, Integer> mapConcessionariaFk) {
+        RodoviaDao rodoviaDao = this.entityDaos.stream()
+                .filter(dao -> dao instanceof RodoviaDao)
+                .map( rDao -> (RodoviaDao) rDao).findFirst().get();
         HashMap<Rodovia, Integer> mapRodoviaFk = new HashMap<>();
         List<Rodovia> buffer = new ArrayList<>();
 
@@ -107,7 +113,7 @@ public class ETLService {
                     }
                 }
             }
-            new RodoviaDao(connection.getJdbcTemplate()).saveAll(buffer, connection);
+            rodoviaDao.saveAll(buffer);
             logger.info("Rodovias cadastradas: " + buffer.size());
         } catch (Exception e) {
             logger.error("Erro ao salvar rodovias: " + e.getMessage());
@@ -116,9 +122,10 @@ public class ETLService {
         return mapRodoviaFk;
     }
 
-    public void extractAndSaveAcidentes(HashMap<String, Integer> mapConcessionariaFk, HashMap<Rodovia, Integer> mapRodoviaFk) {
-        AcidenteDao acidenteDao = new AcidenteDao(connection.getJdbcTemplate());
-
+    public void processarAcidentes(HashMap<String, Integer> mapConcessionariaFk, HashMap<Rodovia, Integer> mapRodoviaFk) {
+        AcidenteDao acidenteDao = this.entityDaos.stream()
+                .filter(dao -> dao instanceof AcidenteDao)
+                .map( aDao -> (AcidenteDao) aDao).findFirst().get();
         try {
             for (String fileName : fileNames) {
                 logger.info("Lendo o Arquivo: " + fileName);
@@ -144,7 +151,7 @@ public class ETLService {
                             }
                         }
                     }
-                    acidenteDao.saveAll(buffer, connection);
+                    acidenteDao.saveAll(buffer);
                     buffer.clear();
                 }
             }

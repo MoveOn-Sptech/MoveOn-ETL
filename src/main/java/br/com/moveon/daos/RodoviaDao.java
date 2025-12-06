@@ -13,20 +13,13 @@ import java.util.List;
 
 public class RodoviaDao extends EntityDao<Rodovia> {
 
-    public RodoviaDao(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
-    }
 
     @Override
-    public void saveAll(List<Rodovia> rodovias, DatabaseConnection connection) throws SQLException {
-        Connection conn = connection.getBasicDataSource().getConnection();
+    public void saveAll(List<Rodovia> rodovias) throws SQLException {
+        Connection conn = super.getBasicDataSource().getConnection();
         conn.setAutoCommit(false);
 
-        String query = """
-                INSERT INTO Rodovia (idRodovia, nome, denominacao, municipio, regionalDer, regionalAdmSp, fkConcessionaria)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                """;
-        try (PreparedStatement preparedStatement = conn.prepareStatement(query);) {
+        try (PreparedStatement preparedStatement = conn.prepareStatement(this.query());) {
             for (Rodovia rodovia : rodovias) {
                 preparedStatement.setInt(1, rodovia.getIdRodovia());
                 preparedStatement.setString(2, rodovia.getNome());
@@ -47,5 +40,13 @@ public class RodoviaDao extends EntityDao<Rodovia> {
             conn.setAutoCommit(true);
         }
 
+    }
+
+    @Override
+    protected String query() {
+        return """
+                INSERT INTO Rodovia (idRodovia, nome, denominacao, municipio, regionalDer, regionalAdmSp, fkConcessionaria)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
     }
 }

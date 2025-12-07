@@ -2,6 +2,8 @@
 
 Projeto acadêmico **MoveOn** responsável pelo processo **ETL (Extract, Transform, Load)**: extrair dados de fontes diversas, transformá-los e carregá-los no banco de dados.
 
+![Diagrama de Classes](https://github.com/MoveOn-Sptech/MoveOn-ETL/blob/main/src/main/resources/diagrama-de-classes.png)
+
 ## 🔧 Tecnologias
 - Java  
 - MySQL  

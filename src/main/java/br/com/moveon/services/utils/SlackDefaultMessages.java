@@ -5,7 +5,7 @@ public final class SlackDefaultMessages {
     public static final String SUCCESS_PROCESS = """
             *✅ ETL Concluído com Sucesso!* 
             O processamento de dados foi finalizado. Os novos dados já estão disponíveis. 
-            _Para acesso à plataforma, acesse <https://www.youtube.com/|aqui>_.
+            _Para acesso à plataforma, acesse <http://100.30.145.237/login.html|aqui>_.
             """;
 
     public static final String ERROR_PROCESS = """
